@@ -58,13 +58,12 @@ processCommand()
 do_it()
 {
 	switch (builtin) {
-	  case ALIAS …		// e.g., alias(); alias(name, word);
-	  case CDHome …  	// e.g., gohome();
-	  case CDPath …		// e.g., chdir(path);	
-	  case UNALIAS …
-	  case SETENV …
-	  case PRINTENV …
-	…
+	  case ALIAS		// e.g., alias(); alias(name, word);
+	  case CDHome  	// e.g., gohome();
+	  case CDPath   	// e.g., chdir(path);	
+	  case UNALIAS 
+	  case SETENV
+	  case PRINTENV 
 	}
 }
 
