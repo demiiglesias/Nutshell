@@ -7,7 +7,7 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON /*declares token usage/ accepted tokens*/
+%token STRING NUM TAB BLANK OTHER SEMICOLON /*declares token usage/ accepted tokens*/
 
 %type <name> STRING /*token has this type of data type*/
 %type <number> NUM
@@ -32,6 +32,12 @@ stmt:
 		}
 		| NUM {
 				printf("The number you entered is - %d", $1);
+		} 
+		| TAB {
+				printf("\nNo. of tabs=%d", tc);
+		} 
+		| BLANK {
+				printf("\nNo. of spaces=%d", sc);
 		}
 		| OTHER
 ;
