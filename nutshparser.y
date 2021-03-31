@@ -95,23 +95,23 @@ int runSetAlias(char *name, char *word) {
 	return 1;
 }
 
-int RunSetEnv (char* name, char* word){
+int RunSetEnv (char* var, char* word){
 	for (int i = 0; i < varIndex; i++) {
-		if(strcmp(varTable.name[i], name) == 0) {
+		if(strcmp(varTable.var[i], var) == 0) {
 			strcpy(varTable.word[i], word);
 			return 1;
 		}
 	}
-		strcpy(varTable.name[varIndex], name);
+		strcpy(varTable.var[varIndex], name);
 		strcpy(varTable.word[varIndex], word);
 		varIndex++;
 
 		return 1;
 }
 
-int RunPrintEnv (char* name, char* word){
+int RunPrintEnv (char* var, char* word){
 	for (int i = 0; i < varIndex; i++){
-		strcpy(varTable.word[i], word);
+		printf("%d = %d" varTable[i].var, varTable[i].word);
 	}
 
 }
