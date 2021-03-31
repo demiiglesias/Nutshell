@@ -17,7 +17,7 @@ int runSetAlias(char *name, char *word);
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV END
 
 %%
 cmd_line    :
@@ -31,7 +31,7 @@ int yyerror(char *s) {
   printf("%s\n",s);
   return 0;
   }
-
+// one function for defaults, one with one argument, one with two arguments
 int runCD(char* arg) {
 	if (arg[0] != '/') { // arg is relative path
 		strcat(varTable.word[0], "/");
