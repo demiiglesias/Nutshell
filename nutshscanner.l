@@ -44,7 +44,6 @@ alias		        { return ALIAS; }
 setenv              { return SETENV;}
 printenv            { return PRINTENV;}
 unsetenv            { return UNSETENV;}
-ls                  { return LS; }
 "\n"		        { return END; }
 [\"]                 { BEGIN(string_condition); }
 {CHAR}+              {if(ifAlias(yytext)) {
