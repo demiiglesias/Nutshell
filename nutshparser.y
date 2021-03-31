@@ -24,6 +24,8 @@ cmd_line    :
 	BYE END 		                {exit(1); return 1; }
 	| CD STRING END        			{runCD($2); return 1;}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
+	| SETENV STRING STRING END 		{RunSetEnv($2, $3); return 1;}
+	| PRINTENV STRING END           {RunPrintEnv($2); return 1;}
 
 %%
 
@@ -91,4 +93,25 @@ int runSetAlias(char *name, char *word) {
 	aliasIndex++;
 
 	return 1;
+}
+
+int RunSetEnv (char* name, char* word){
+	for (int i = 0; i < varIndex; i++) {
+		if(strcmp(varTable.name[i], name) == 0) {
+			strcpy(varTable.word[i], word);
+			return 1;
+		}
+	}
+		strcpy(varTable.name[varIndex], name);
+		strcpy(varTable.word[varIndex], word);
+		varIndex++;
+
+		return 1;
+}
+
+int RunPrintEnv (char* name, char* word){
+	for (int i = 0; i < varIndex; i++){
+		
+	}
+
 }
