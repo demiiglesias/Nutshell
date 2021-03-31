@@ -7,7 +7,7 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM TAB BLANK OTHER SEMICOLON /*declares token usage/ accepted tokens*/
+%token STRING NUM WHITESPACE OTHER 
 
 %type <name> STRING /*token has this type of data type*/
 %type <number> NUM
@@ -22,9 +22,15 @@ int yyerror(char *s);
 prog: 
   stmts
 ;
+expr:
+	expr "'\'" expr;
+	|expr '<' expr;
+	|expr '>' expr;
+	|expr '&' expr;
+;
 
 stmts:
-		| stmt SEMICOLON stmts
+		| stmt expr stmts
 
 stmt:
 		STRING {
@@ -33,12 +39,6 @@ stmt:
 		| NUM {
 				printf("The number you entered is - %d", $1);
 		} 
-		| TAB {
-				printf("\nNo. of tabs=%d", tc);
-		} 
-		| BLANK {
-				printf("\nNo. of spaces=%d", sc);
-		}
 		| OTHER
 ;
 

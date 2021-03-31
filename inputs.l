@@ -1,26 +1,26 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "parse.tab.h"
+#include "inputs.tab.h"
 void showError();
 %}
+
 /* We want to add < > | " \ & */
-/****regular expressions*****/
+/* regular expressions */
 numbers     ([0-9])+
 alpha       ([a-zA-Z])+ 
-tabs        (\t) tc++
-space       ([]) sc++
+whitespace  ([ \t\n])
+operations  ([. .. < > \ & | ]) 
 
-
-/****token specifications*****/
+/*  tokens Spec.  */
 %%
 
 {alpha}			   {sscanf(yytext, "%s", yylval.name); return (STRING);}
 {numbers}          {yylval.number = atoi(yytext); return (NUM);}
-{tabs}             {return(TAB);}
-{space}            {return (BLANK);}
-";"      		   {return (SEMICOLON);}
-.      		       {showError(); return(OTHER);} /*. captures everything not accounted for*/
+{whitespace}       ;
+
+
+.      		       {showError(); return(OTHER);} 
 
 %%
 
