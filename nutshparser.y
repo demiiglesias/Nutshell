@@ -111,7 +111,7 @@ int RunSetEnv (char* name, char* word){
 
 int RunPrintEnv (char* name, char* word){
 	for (int i = 0; i < varIndex; i++){
-		
+		strcpy(varTable.word[i], word);
 	}
 
 }
