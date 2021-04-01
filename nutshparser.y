@@ -13,8 +13,6 @@ int runSetAlias(char *name, char *word);
 int RunSetEnv(char* var, char* word);
 int RunPrintEnv();
 int RunUnsetEnv(char* word);
-int RunAlias();
-int RunUnalias(char* name);
 bool checkEnv(char* word);
 
 %}
@@ -22,18 +20,16 @@ bool checkEnv(char* word);
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV END
 
 %%
 cmd_line    :
 	BYE END 		                {exit(1); return 1; }
 	| CD STRING END        			{runCD($2); return 1;}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
-	| ALIAS END						{runAlias(); return 1;}
 	| SETENV STRING STRING END 		{RunSetEnv($2, $3); return 1;}
 	| PRINTENV END           		{RunPrintEnv(); return 1;}
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
-	| UNALIAS STRING END			{RunUnalias($2); return 1;}
 
 %%
 
@@ -105,7 +101,7 @@ int runSetAlias(char *name, char *word) {
 
 bool checkEnv(char* word){
     for(int i = 0; i < varIndex; i++ ){
-        if((strmp(varTable.word), word) == 0){
+        if((strcmp(varTable.word[i], word)) == true){
             return true;
         }
     }
@@ -127,13 +123,11 @@ int RunSetEnv (char* var, char* word){
 }
 
 int RunPrintEnv() {
-	char* print1, print2;
 	for (int i = 0; i < varIndex; i++){
-		printf(varTable[i].word);
+		printf("%s", varTable.word[i]);
 		printf("\n");
-		printf(varTable[i].var);
+		printf("%s",varTable.var[i]);
 	}
-	
 	return 1;
 }
 
