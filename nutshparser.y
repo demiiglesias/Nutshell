@@ -1,6 +1,4 @@
 %{
-// This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and Flex start conditions.
-// This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
 // Only "alias name word", "cd word", and "bye" run. 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,7 +100,7 @@ int RunSetEnv (char* var, char* word){
 			return 1;
 		}
 	}
-		strcpy(varTable.var[varIndex], name);
+		strcpy(varTable.var[varIndex], var);
 		strcpy(varTable.word[varIndex], word);
 		varIndex++;
 
