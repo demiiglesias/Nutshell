@@ -1,29 +1,39 @@
 %{
-// Only "alias name word", "cd word", and "bye" run. 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include "global.h"
+#include <stdbool.h>
 
 int yylex();
 int yyerror(char *s);
 int runCD(char* arg);
 int runSetAlias(char *name, char *word);
+int RunSetEnv(char* var, char* word);
+int RunPrintEnv();
+int RunUnsetEnv(char* word);
+int RunAlias();
+int RunUnalias(char* name);
+bool checkEnv(char* word);
+
 %}
 
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS END
 
 %%
 cmd_line    :
 	BYE END 		                {exit(1); return 1; }
 	| CD STRING END        			{runCD($2); return 1;}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
+	| ALIAS END						{runAlias(); return 1;}
 	| SETENV STRING STRING END 		{RunSetEnv($2, $3); return 1;}
-	| PRINTENV STRING END           {RunPrintEnv($2); return 1;}
+	| PRINTENV END           		{RunPrintEnv(); return 1;}
+	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
+	| UNALIAS STRING END			{RunUnalias($2); return 1;}
 
 %%
 
@@ -93,6 +103,15 @@ int runSetAlias(char *name, char *word) {
 	return 1;
 }
 
+bool checkEnv(char* word){
+    for(int i = 0; i < varIndex; i++ ){
+        if((strmp(varTable.word), word) == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 int RunSetEnv (char* var, char* word){
 	for (int i = 0; i < varIndex; i++) {
 		if(strcmp(varTable.var[i], var) == 0) {
@@ -107,9 +126,42 @@ int RunSetEnv (char* var, char* word){
 		return 1;
 }
 
-int RunPrintEnv (char* var, char* word){
+int RunPrintEnv() {
+	char* print1, print2;
 	for (int i = 0; i < varIndex; i++){
-		printf("%d = %d" varTable[i].var, varTable[i].word);
+		printf(varTable[i].word);
+		printf("\n");
+		printf(varTable[i].var);
 	}
+	
+	return 1;
+}
 
+int RunUnsetEnv (char* word) {
+// check for the data, replace with empty string
+// break out and have another loop to push everything by one
+// start from i+1, put 9 in the place of 8, etc
+int index;
+	if (checkEnv(word) == true){
+		for(int i = 0; i < varIndex; i++){
+			if(strcmp(varTable.word[i], word) == 0) {
+			index = i;
+			strcpy(varTable.word[i], "");
+			strcpy(varTable.var[i], "");
+			}
+		}
+		for(int j = index + 1; j < varIndex ; j++){
+			strcpy(varTable.word[index], varTable.word[j]);
+			strcpy(varTable.word[j], "");
+			strcpy(varTable.var[index], varTable.var[j]);
+			strcpy(varTable.var[j], "");
+			index++;
+		}
+		varIndex--;
+		return 1;
+	}
+	else {
+		printf("Word: %d does not exist", *word);
+		return 1;		
+	}
 }

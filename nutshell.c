@@ -6,6 +6,8 @@
 #include "global.h"
 #include <unistd.h>
 #include <limits.h>
+#include <stdbool.h>
+
 char *getcwd(char *buf, size_t size);
 
 int main()
