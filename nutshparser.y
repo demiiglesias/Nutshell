@@ -124,9 +124,11 @@ int RunSetEnv (char* var, char* word){
 
 int RunPrintEnv() {
 	for (int i = 0; i < varIndex; i++){
-		printf("%s", varTable.word[i]);
-		printf("\n");
-		printf("%s",varTable.var[i]);
+		printf("enter")
+		printf("%s =", varTable.word[i]);
+		printf("Hello")
+		//printf("\n");
+		printf("%s\n",varTable.var[i]);
 	}
 	return 1;
 }
@@ -155,7 +157,10 @@ int index;
 		return 1;
 	}
 	else {
-		printf("Word: %d does not exist", *word);
+		printf("ppppp");
+		printf("Word: %d does not exist\n", *word);
+		printf("hekko");
 		return 1;		
 	}
 }
+
