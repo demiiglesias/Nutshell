@@ -79,8 +79,7 @@ int runCD(char* arg) {
                        	return 1;
 		}
 	}
-	return 1;
-}
+	return 1;}
 
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -88,14 +87,10 @@ bool checkAlias(char* name){
             printf("Error not in table ");
 			return true;
         } 
-		else {
-//			printf("False, ");
-			return false;
-		}
     }
-	// printf("false, ");
-    // return false;
+	return false;
 }
+
 //does this account for the infinite loop?
 int runSetAlias(char *name, char *word) {
 	for (int i = 0; i < aliasIndex; i++) {
@@ -121,22 +116,28 @@ int runSetAlias(char *name, char *word) {
 
 int RunPrintAlias(){
 for (int i = 0; i < aliasIndex; i++){
-		printf(aliasTable.name[i]);
-		printf("\n");
+		printf("%s = ", aliasTable.name[i]);
+		printf("%s\n",aliasTable.word[i]);
 	}
+	printf("alias index: %d", aliasIndex);
+	//return 1;
 }
+//name=word
 //name is the alias
 int RunUnalias(char* name){
+	printf("%s", name);
 	int index;
 	if (checkAlias(name) != true){
 		for(int i = 0; i < aliasIndex; i++){
-			if(strcmp(aliasTable.name[i], name) == 0) {
+			if (strcmp(aliasTable.name[i], name) == 0) {
 			index = i;
 			strcpy(aliasTable.name[i], "");
 			strcpy(aliasTable.word[i], "");
 			}
 		}
-		for(int j = index + 1; j < aliasIndex ; j++){
+		for(int j = index + 1; j < aliasIndex; j++){
+			printf("alias index: %d", aliasIndex);
+			printf("index in loop: %d", index);
 			strcpy(aliasTable.name[index], aliasTable.name[j]);
 			strcpy(aliasTable.name[j], "");
 			strcpy(aliasTable.word[index], aliasTable.word[j]);
@@ -208,8 +209,8 @@ int index;
 	}
 	else {
 		printf("Variable: %s does not exist\n", var);
-		return 1;		
-	}
+		return 1;	
+	}	
 }
 
 //setenv hunter demi
