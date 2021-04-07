@@ -8,7 +8,7 @@ bison-config:
 flex-config:
 	flex nutshscanner.l
 
-nutshell: 
+nutshell: nutshell.c nutshparser.tab.c lex.yy.c
 	$(CC) nutshell.c nutshparser.tab.c lex.yy.c -o nutshell
 
 clean:

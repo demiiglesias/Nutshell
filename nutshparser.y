@@ -7,20 +7,23 @@
 #include <stdbool.h>
 
 int yylex();
-int yyerror(char *s);
+int yyerror(char* s);
 int runCD(char* arg);
-int runSetAlias(char *name, char *word);
+int runSetAlias(char* name, char* word);
 int RunSetEnv(char* var, char* word);
 int RunPrintEnv();
-int RunUnsetEnv(char* word);
-bool checkEnv(char* word);
+int RunUnsetEnv(char* var);
+int RunUnalias(char* name);
+int RunPrintAlias();
+bool checkEnv(char* var);
+bool checkAlias(char* name);
 
 %}
 
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS END
 
 %%
 cmd_line    :
@@ -30,7 +33,9 @@ cmd_line    :
 	| SETENV STRING STRING END 		{RunSetEnv($2, $3); return 1;}
 	| PRINTENV END           		{RunPrintEnv(); return 1;}
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
-
+	| ALIAS END						{RunPrintAlias(); return 1;}
+	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
+	
 %%
 
 int yyerror(char *s) {
@@ -77,9 +82,24 @@ int runCD(char* arg) {
 	return 1;
 }
 
+bool checkAlias(char* name){
+    for (int i = 0; i < aliasIndex; i++) {
+        if((strcmp(aliasTable.name[i], name)) == 0) {
+            printf("Error not in table ");
+			return true;
+        } 
+		else {
+//			printf("False, ");
+			return false;
+		}
+    }
+	// printf("false, ");
+    // return false;
+}
+//does this account for the infinite loop?
 int runSetAlias(char *name, char *word) {
 	for (int i = 0; i < aliasIndex; i++) {
-		if(strcmp(name, word) == 0){
+		if(strcmp(name, word) == 0){ 
 			printf("Error, expansion of \"%s\" would create a loop.\n", name);
 			return 1;
 		}
@@ -99,9 +119,42 @@ int runSetAlias(char *name, char *word) {
 	return 1;
 }
 
-bool checkEnv(char* word){
+int RunPrintAlias(){
+for (int i = 0; i < aliasIndex; i++){
+		printf(aliasTable.name[i]);
+		printf("\n");
+	}
+}
+//name is the alias
+int RunUnalias(char* name){
+	int index;
+	if (checkAlias(name) != true){
+		for(int i = 0; i < aliasIndex; i++){
+			if(strcmp(aliasTable.name[i], name) == 0) {
+			index = i;
+			strcpy(aliasTable.name[i], "");
+			strcpy(aliasTable.word[i], "");
+			}
+		}
+		for(int j = index + 1; j < aliasIndex ; j++){
+			strcpy(aliasTable.name[index], aliasTable.name[j]);
+			strcpy(aliasTable.name[j], "");
+			strcpy(aliasTable.word[index], aliasTable.word[j]);
+			strcpy(aliasTable.word[j], "");
+			index++;
+		}
+		aliasIndex--;
+		return 1;
+	}
+	else {
+		printf("Alias: %s does not exist\n", name);
+		return 1;		
+	}
+}
+
+bool checkEnv(char* var){
     for(int i = 0; i < varIndex; i++ ){
-        if((strcmp(varTable.word[i], word)) == true){
+        if((strcmp(varTable.var[i], var)) == 0){
             return true;
         }
     }
@@ -124,23 +177,20 @@ int RunSetEnv (char* var, char* word){
 
 int RunPrintEnv() {
 	for (int i = 0; i < varIndex; i++){
-		printf("enter")
-		printf("%s =", varTable.word[i]);
-		printf("Hello")
-		//printf("\n");
-		printf("%s\n",varTable.var[i]);
+		printf("%s=", varTable.var[i]);
+		printf("%s\n",varTable.word[i]);
 	}
 	return 1;
 }
 
-int RunUnsetEnv (char* word) {
+int RunUnsetEnv (char* var) {
 // check for the data, replace with empty string
 // break out and have another loop to push everything by one
 // start from i+1, put 9 in the place of 8, etc
 int index;
-	if (checkEnv(word) == true){
+	if (checkEnv(var) == true){
 		for(int i = 0; i < varIndex; i++){
-			if(strcmp(varTable.word[i], word) == 0) {
+			if(strcmp(varTable.var[i], var) == 0) {
 			index = i;
 			strcpy(varTable.word[i], "");
 			strcpy(varTable.var[i], "");
@@ -157,10 +207,11 @@ int index;
 		return 1;
 	}
 	else {
-		printf("ppppp");
-		printf("Word: %d does not exist\n", *word);
-		printf("hekko");
+		printf("Variable: %s does not exist\n", var);
 		return 1;		
 	}
 }
 
+//setenv hunter demi
+//unsetenv hunter, hunter is the variable
+//unsetenv demi, should not work because demi is the word

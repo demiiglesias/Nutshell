@@ -41,15 +41,15 @@ alias		        { return ALIAS; }
 setenv              { return SETENV;}
 printenv            { return PRINTENV;}
 unsetenv            { return UNSETENV;}
-"\n"		        { return END; }
+unalias             { return UNALIAS;}
+"\n"		        { return END;}
 [\"]                { BEGIN(string_condition); }
 {CHAR}+             {
                         if(ifAlias(yytext)) {
-                        printf("yytext before sub: %s\n", yytext);
-                           char *yycopy = strdup( subAliases(yytext) );
-                           for ( int i = strlen(subAliases(yytext)) - 1; i >= 0; --i )
-                               unput( yycopy[i] );
-                           free( yycopy );
+                           char *yycopy = strdup(subAliases(yytext));
+                           for (int i = strlen(subAliases(yytext)) - 1; i >= 0; --i)
+                               unput(yycopy[i]);
+                           free(yycopy);
                         } 
                         else {
                         yylval.string = strdup(yytext);
@@ -57,4 +57,5 @@ unsetenv            { return UNSETENV;}
                         };
                      }
 %%
+// printf("yytext before sub: %s\n", yytext);
 // printf("yytext: %s\n", yytext);
