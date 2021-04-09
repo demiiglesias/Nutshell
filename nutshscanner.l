@@ -23,33 +23,62 @@ bool ifAlias(char* name){
 }
 
 //search the bin for the command to determine whether it exists
-
-bool ifCommand(char * name){
-
-}
-
-//if there exists arguments, place them in the argument table
-bool ifArguments(char * argString){
-for (int i = 0; i < argIndex; i++) {
-        if(strcmp(aliasTable.argString[i], argString == 0) {
-            return true;
-        }
+        // if there is white space
+        // then tokenize the contents of it to the first token
+        // take that token, traverse bin for that token
+        // if said token exists in bin, return true
+        // if said token does not exist in bin, return false
+bool ifCommand(char * argStr){
+    char* strnew;
+    char* arg[2];
+        arg[0] = "/bin/";
+    if(ifWhitespace(argStr)){
+        strnew = strtok (argStr, " /t");
+    }
+    else{
+        strnew = argStr;
+    } 
+    arg[1] = strnew;
+    char* cstr = concatStr(arg[0], arg[1]);
+    //search the bin
+    if(fork() == 0){
+	    execve(args[0], cstr, NULL);
+        return true;
     }
     return false;
 }
-bool has_whitespace(char* input)
-{
-    int i;
-    for (i = 0; i < strlen(input); i++) {
-        if (input[i] == '\t'){
-            char* strnew = strtok (input, '\t');
-        }
-        else if (input[i] == ' '){
-            char* strnew = strtok (input, ' ');
-        }
-        argIndex++;
+//complete
+char* concatStr(char* str1, char* str2) {
+    char* result = malloc(strlen(str1)+strlen(str2)+1);
+    strcpy(result, str1);
+    strcat(result, str2);
+    return result;
+}
+//if there exists arguments, place them in the argument table
+//complete?
+bool ifArguments(char * argStr){
+    if(ifWhitespace(argStr)){
+        argTable.argString = argStr;
+        char* strnew;
+        strnew = strtok (argStr, " /t");
+        while (strnew != NULL) {
+            printf ("%s\n",strnew);
+            argTable.argList[argIndex] = strnew;
+            argIndex++;
+            strnew = strtok (NULL, " /t");
+        }    
+        return true;
     }
-    return 1;
+    return false;
+}
+
+//complete
+bool ifWhitespace(char* input) {
+for (i = 0; i < strlen(input); i++) {
+     if (input[i] == '\t' || input[i] == ' '){
+         return true;
+}
+    return false;
 }
 
 int only_whitespace(char* input)
@@ -63,7 +92,7 @@ int only_whitespace(char* input)
     return 1;
 }
 
-%}
+%
 %array
 %option noyywrap
 

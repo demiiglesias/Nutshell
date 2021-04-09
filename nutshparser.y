@@ -38,11 +38,14 @@ cmd_line    :
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	| CMD other_rules END			{RunBinCommands($2); return 1;}
+	| CMD arg_list END				{RunBinCommands($2); return 1;}
 ;
-other_rules	 :
-	%empty
-	| other_rules ARGUMENTS			{$$ = char*[];}			
+arg_list	 :
+	/* empty */
+	| ARGUMENTS arg_list			{$$ = $1;
+									 
+									}
+	| ARGUMENTS						{$$ = $1}
 %%
 
 int yyerror(char *s) {
@@ -219,18 +222,17 @@ int index;
 		return 1;	
 	}	
 }
-
+// runs command
 int RunBinCommands(){
-	if(fork == 0){
+	if(fork() == 0){
 		char * arg[] = {};
 		arg[0]="./bin/" ;
 		execve(arg[0], arg, null);
 
 	}
 
-
-
 }
+
 //setenv hunter demi
 //unsetenv hunter, hunter is the variable
 //unsetenv demi, should not work because demi is the word
