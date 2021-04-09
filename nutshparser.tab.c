@@ -1656,7 +1656,7 @@ int runCD(char* arg) {
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
         if((strcmp(aliasTable.name[i], name)) == 0) {
-            printf("Error not in table ");
+            //printf("Error not in table ");
 			return true;
         } 
     }
@@ -1691,15 +1691,15 @@ for (int i = 0; i < aliasIndex; i++){
 		printf("%s = ", aliasTable.name[i]);
 		printf("%s\n",aliasTable.word[i]);
 	}
-	printf("alias index: %d", aliasIndex);
+	printf("alias index: %d\n", aliasIndex);
 	//return 1;
 }
 //name=word
 //name is the alias
 int RunUnalias(char* name){
-	printf("%s", name);
+	printf("name: %s\n", name);
 	int index;
-	if (checkAlias(name) != true){
+	if (checkAlias(name) == true){
 		for(int i = 0; i < aliasIndex; i++){
 			if (strcmp(aliasTable.name[i], name) == 0) {
 			index = i;
@@ -1708,8 +1708,8 @@ int RunUnalias(char* name){
 			}
 		}
 		for(int j = index + 1; j < aliasIndex; j++){
-			printf("alias index: %d", aliasIndex);
-			printf("index in loop: %d", index);
+			//printf("alias index: %d", aliasIndex);
+			//printf("index in loop: %d", index);
 			strcpy(aliasTable.name[index], aliasTable.name[j]);
 			strcpy(aliasTable.name[j], "");
 			strcpy(aliasTable.word[index], aliasTable.word[j]);

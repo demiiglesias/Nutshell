@@ -5,6 +5,7 @@
 #include <string.h>
 #include "global.h"
 #include <stdbool.h>
+#include <dirent.h>
 
 int yylex();
 int yyerror(char* s);
@@ -17,13 +18,15 @@ int RunUnalias(char* name);
 int RunPrintAlias();
 bool checkEnv(char* var);
 bool checkAlias(char* name);
+int RunBinCommands();
+//double $$ symbol for value of group
 
 %}
 
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS CMD ARGUMENTS END
 
 %%
 cmd_line    :
@@ -35,7 +38,11 @@ cmd_line    :
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	
+	| CMD other_rules END			{RunBinCommands($2); return 1;}
+;
+other_rules	 :
+	%empty
+	| other_rules ARGUMENTS			{$$ = char*[];}			
 %%
 
 int yyerror(char *s) {
@@ -84,7 +91,7 @@ int runCD(char* arg) {
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
         if((strcmp(aliasTable.name[i], name)) == 0) {
-            printf("Error not in table ");
+            //printf("Error not in table ");
 			return true;
         } 
     }
@@ -119,15 +126,15 @@ for (int i = 0; i < aliasIndex; i++){
 		printf("%s = ", aliasTable.name[i]);
 		printf("%s\n",aliasTable.word[i]);
 	}
-	printf("alias index: %d", aliasIndex);
+	printf("alias index: %d\n", aliasIndex);
 	//return 1;
 }
 //name=word
 //name is the alias
 int RunUnalias(char* name){
-	printf("%s", name);
+	printf("name: %s\n", name);
 	int index;
-	if (checkAlias(name) != true){
+	if (checkAlias(name) == true){
 		for(int i = 0; i < aliasIndex; i++){
 			if (strcmp(aliasTable.name[i], name) == 0) {
 			index = i;
@@ -136,8 +143,8 @@ int RunUnalias(char* name){
 			}
 		}
 		for(int j = index + 1; j < aliasIndex; j++){
-			printf("alias index: %d", aliasIndex);
-			printf("index in loop: %d", index);
+			//printf("alias index: %d", aliasIndex);
+			//printf("index in loop: %d", index);
 			strcpy(aliasTable.name[index], aliasTable.name[j]);
 			strcpy(aliasTable.name[j], "");
 			strcpy(aliasTable.word[index], aliasTable.word[j]);
@@ -213,6 +220,17 @@ int index;
 	}	
 }
 
+int RunBinCommands(){
+	if(fork == 0){
+		char * arg[] = {};
+		arg[0]="./bin/" ;
+		execve(arg[0], arg, null);
+
+	}
+
+
+
+}
 //setenv hunter demi
 //unsetenv hunter, hunter is the variable
 //unsetenv demi, should not work because demi is the word

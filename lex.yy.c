@@ -482,7 +482,7 @@ char *yytext_ptr;
 #include <string.h>
 #include "global.h"
 #include <stdbool.h>
-
+int wordcount = 0;
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 char* subAliases(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -798,43 +798,43 @@ YY_RULE_SETUP
 case 4:
 YY_RULE_SETUP
 #line 38 "nutshscanner.l"
-{ return BYE; }
+{ wordcount = 1; return BYE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 39 "nutshscanner.l"
-{ return CD;}
+{ wordcount = 1; return CD;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 40 "nutshscanner.l"
-{ return ALIAS; }
+{ wordcount = 1; return ALIAS; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 41 "nutshscanner.l"
-{ return SETENV;}
+{ wordcount = 1; return SETENV;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 42 "nutshscanner.l"
-{ return PRINTENV;}
+{ wordcount = 1; return PRINTENV;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 43 "nutshscanner.l"
-{ return UNSETENV;}
+{ wordcount = 1; return UNSETENV;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 44 "nutshscanner.l"
-{ return UNALIAS;}
+{ wordcount = 1; return UNALIAS;}
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
 #line 45 "nutshscanner.l"
-{ return END;}
+{ wordcount = 0; return END;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
@@ -845,24 +845,27 @@ case 13:
 YY_RULE_SETUP
 #line 47 "nutshscanner.l"
 {
-                        if(ifAlias(yytext)) {
+                        if(ifAlias(yytext) && wordcount == 0) {
                            char *yycopy = strdup(subAliases(yytext));
-                           for (int i = strlen(subAliases(yytext)) - 1; i >= 0; --i)
-                               unput(yycopy[i]);
-                           free(yycopy);
+                                for (int i = strlen(subAliases(yytext)) - 1; i >= 0; --i)
+                                    unput(yycopy[i]);
+                                printf("yycopy after sub: %s\n", yycopy);
+                                free(yycopy);
                         } 
                         else {
-                        yylval.string = strdup(yytext);
-                        return STRING;
+                            yylval.string = strdup(yytext);
+                             wordcount++;   
+                             return STRING;
+                            
                         };
                      }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 59 "nutshscanner.l"
+#line 62 "nutshscanner.l"
 ECHO;
 	YY_BREAK
-#line 866 "lex.yy.c"
+#line 869 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(string_condition):
 	yyterminate();
@@ -1868,7 +1871,8 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 59 "nutshscanner.l"
+#line 62 "nutshscanner.l"
 
 // printf("yytext before sub: %s\n", yytext);
 // printf("yytext: %s\n", yytext);
+// 
