@@ -20,16 +20,17 @@ bool checkEnv(char* var);
 bool checkAlias(char* name);
 int RunBinCommands();
 //double $$ symbol for value of group
-
 %}
 
-%union {char *string;}
+%union {
+	char *string;
+}
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS CMD ARGUMENTS END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS CMD END
 
 %%
-cmd_line    :
+cmd_line:
 	BYE END 		                {exit(1); return 1; }
 	| CD STRING END        			{runCD($2); return 1;}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
@@ -38,14 +39,16 @@ cmd_line    :
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	| CMD arg_list END				{RunBinCommands($2); return 1;}
+	| CMD END						{RunBinCommands($1); return 1;}
+	| arg_list END					{RunBinCommands(); return 1;}
 ;
-arg_list	 :
-	/* empty */
-	| ARGUMENTS arg_list			{$$ = $1;
-									 
-									}
-	| ARGUMENTS						{$$ = $1}
+arg_list:
+	STRING							{strcpy(cmdTable.cmds[cmdIndex], $1);
+									cmdTable.argument[cmdIndex].argCount ++;}
+	
+	| arg_list STRING				{strcpy(cmdTable.argument[cmdIndex].args[argIndex], $2);
+									argIndex++;}
+;
 %%
 
 int yyerror(char *s) {
@@ -146,8 +149,6 @@ int RunUnalias(char* name){
 			}
 		}
 		for(int j = index + 1; j < aliasIndex; j++){
-			//printf("alias index: %d", aliasIndex);
-			//printf("index in loop: %d", index);
 			strcpy(aliasTable.name[index], aliasTable.name[j]);
 			strcpy(aliasTable.name[j], "");
 			strcpy(aliasTable.word[index], aliasTable.word[j]);
@@ -224,15 +225,20 @@ int index;
 }
 // runs command
 int RunBinCommands(){
-	if(fork() == 0){
-		char * arg[] = {};
-		arg[0]="./bin/" ;
-		execve(arg[0], arg, null);
-
-	}
-
+		// // printf("Line 221, runbincommands\n");
+		// int check;
+		// char* args[2];
+		// args[0] = argTable.argList[0];
+		// printf("get here");
+		// printf("arg 0: \n");
+		// printf(args[0]);
+		// printf("arg 1: \n");
+		// printf(args[1]);
+		// if (fork() == 0 ) {
+		// 	execv("/bin/whoami", args);
+		// 	printf("get here please");
+		// }else{
+		// 	wait(&check);
+		// }
+		// return 1;
 }
-
-//setenv hunter demi
-//unsetenv hunter, hunter is the variable
-//unsetenv demi, should not work because demi is the word
