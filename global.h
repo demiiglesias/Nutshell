@@ -7,6 +7,7 @@
 #include <glob.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <limits.h>
 
 struct evTable {
    char var[128][100];
@@ -25,6 +26,7 @@ struct commTable{
    char cmds[128][100];
    struct argumentTable argument[128];
 };
+char cwd[PATH_MAX];
 
 struct evTable varTable;
 struct aTable aliasTable;

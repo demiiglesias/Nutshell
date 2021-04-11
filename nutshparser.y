@@ -58,6 +58,18 @@ int yyerror(char *s) {
   printf("%s\n",s);
   return 0;
   }
+
+//complete
+char* concatStr(char* str1, char* str2) {
+    char* result = malloc(strlen(str1)+strlen(str2)+1);
+    strcpy(result, str1);
+    strcat(result, str2);
+    return result;
+}
+
+//env table
+// PWD = /mnt/e/Git/Nutshell/Nuts//.. (errors) [0]
+// HOME = /mnt/e/Git/Nutshell (doesn't change) [1]
 // one function for defaults, one with one argument, one with two arguments
 int runCD(char* arg) {
 	if (arg[0] != '/') { // arg is relative path
@@ -65,37 +77,26 @@ int runCD(char* arg) {
 		strcat(varTable.word[0], arg);
 
 		if(chdir(varTable.word[0]) == 0) {
-			strcpy(aliasTable.word[0], varTable.word[0]);
-			strcpy(aliasTable.word[1], varTable.word[0]);
-			char *pointer = strrchr(aliasTable.word[1], '/');
-			while(*pointer != '\0') {
-				*pointer ='\0';
-				pointer++;
-			}
+			return 1;
 		}
 		else {
-			//strcpy(varTable.word[0], varTable.word[0]); // fix
+			getcwd(cwd, sizeof(cwd));
+			strcpy(varTable.word[0], cwd);
 			printf("Directory not found\n");
 			return 1;
 		}
 	}
 	else { // arg is absolute path
 		if(chdir(arg) == 0){
-			strcpy(aliasTable.word[0], arg);
-			strcpy(aliasTable.word[1], arg);
 			strcpy(varTable.word[0], arg);
-			char *pointer = strrchr(aliasTable.word[1], '/');
-			while(*pointer != '\0') {
-			*pointer ='\0';
-			pointer++;
-			}
+			return 1;
 		}
 		else {
 			printf("Directory not found\n");
                        	return 1;
 		}
 	}
-	return 1;}
+}
 
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -108,15 +109,26 @@ bool checkAlias(char* name){
 }
 
 //does this account for the infinite loop?
+// a = name , b = word
+// a == b 
+// b != a
 int runSetAlias(char *name, char *word) {
 	for (int i = 0; i < aliasIndex; i++) {
 		if(strcmp(name, word) == 0){ 
-			printf("Error, expansion of \"%s\" would create a loop.\n", name);
+			printf("Error1, expansion of \"%s\" would create a loop.\n", name);
 			return 1;
 		}
 		else if((strcmp(aliasTable.name[i], name) == 0) && (strcmp(aliasTable.word[i], word) == 0)){
-			printf("Error, expansion of \"%s\" would create a loop.\n", name);
+			printf("Error2, expansion of \"%s\" would create a loop.\n", name);
 			return 1;
+		}
+		else if(!(strcmp(aliasTable.name[i], name) == 0) && !(strcmp(aliasTable.word[i], word) == 0)){
+			for (int j = 0; j < aliasIndex; j++){
+				if((strcmp(aliasTable.name[j], word) == 0) && (strcmp(aliasTable.word[j], name) == 0)){
+					printf("Error3, expansion of \"%s\" would create a loop.\n", name);
+					return 1;
+				}
+			}
 		}
 		else if(strcmp(aliasTable.name[i], name) == 0) {
 			strcpy(aliasTable.word[i], word);
@@ -126,7 +138,6 @@ int runSetAlias(char *name, char *word) {
 	strcpy(aliasTable.name[aliasIndex], name);
 	strcpy(aliasTable.word[aliasIndex], word);
 	aliasIndex++;
-
 	return 1;
 }
 
@@ -235,13 +246,7 @@ for (int i = 0; i < strlen(input); i++) {
         return false;
     } 
 }
-//complete
-char* concatStr(char* str1, char* str2) {
-    char* result = malloc(strlen(str1)+strlen(str2)+1);
-    strcpy(result, str1);
-    strcat(result, str2);
-    return result;
-}
+
 // runs command
 int RunBinCommands(){
 	int check;

@@ -2124,7 +2124,7 @@ yyreduce:
 
   case 6:
 #line 826 "shell.y"
-                  {  (yyval.arg_n) = (yyvsp[-1].arg_n);
+                  { (yyval.arg_n) = (yyvsp[-1].arg_n);
                      arg_node* current = (yyvsp[-1].arg_n);
                      while (current->next != NULL) current = current->next;
                      current->next = (yyvsp[0].arg_n);}

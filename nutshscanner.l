@@ -8,6 +8,7 @@
 #include <stdio.h>
 extern int errno;
 int wordcount = 0;
+
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 char* subAliases(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -41,7 +42,7 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ 
 
 [ ]		            { }
 bye                 { wordcount = 1; return BYE;}
-crd		            { wordcount = 1; return CD;}
+cd		            { wordcount = 1; return CD;}
 alias		        { wordcount = 1; return ALIAS;}
 setenv              { wordcount = 1; return SETENV;}
 printenv            { wordcount = 1; return PRINTENV;}
