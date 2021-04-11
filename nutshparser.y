@@ -6,7 +6,8 @@
 #include "global.h"
 #include <stdbool.h>
 #include <dirent.h>
-
+#include <errno.h>
+extern int errno;
 int yylex();
 int yyerror(char* s);
 int runCD(char* arg);
@@ -19,6 +20,8 @@ int RunPrintAlias();
 bool checkEnv(char* var);
 bool checkAlias(char* name);
 int RunBinCommands();
+char* concatStr(char* str1, char* str2);
+bool ifWhitespace(char* input);
 //double $$ symbol for value of group
 %}
 
@@ -27,7 +30,7 @@ int RunBinCommands();
 }
 
 %start cmd_line
-%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS CMD END
+%token <string> BYE CD STRING ALIAS SETENV UNSETENV PRINTENV UNALIAS CMD PRINTARG END
 
 %%
 cmd_line:
@@ -39,12 +42,12 @@ cmd_line:
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	| CMD END						{RunBinCommands($1); return 1;}
 	| arg_list END					{RunBinCommands(); return 1;}
+	| PRINTARG END					{return 1;}
 ;
 arg_list:
 	STRING							{strcpy(cmdTable.cmds[cmdIndex], $1);
-									cmdTable.argument[cmdIndex].argCount ++;}
+									cmdTable.argument[cmdIndex].argCount++;}
 	
 	| arg_list STRING				{strcpy(cmdTable.argument[cmdIndex].args[argIndex], $2);
 									argIndex++;}
@@ -223,22 +226,56 @@ int index;
 		return 1;	
 	}	
 }
+
+bool ifWhitespace(char* input) {
+for (int i = 0; i < strlen(input); i++) {
+     if (input[i] == '\t' || input[i] == ' '){
+         return true;
+        }
+        return false;
+    } 
+}
+//complete
+char* concatStr(char* str1, char* str2) {
+    char* result = malloc(strlen(str1)+strlen(str2)+1);
+    strcpy(result, str1);
+    strcat(result, str2);
+    return result;
+}
 // runs command
 int RunBinCommands(){
-		// // printf("Line 221, runbincommands\n");
-		// int check;
-		// char* args[2];
-		// args[0] = argTable.argList[0];
-		// printf("get here");
-		// printf("arg 0: \n");
-		// printf(args[0]);
-		// printf("arg 1: \n");
-		// printf(args[1]);
-		// if (fork() == 0 ) {
-		// 	execv("/bin/whoami", args);
-		// 	printf("get here please");
-		// }else{
-		// 	wait(&check);
-		// }
-		// return 1;
+	int check;
+	int count;
+	char* argPass[argIndex+2];
+    char* path[2];
+    path[0] = "/bin/";
+    path[1] = cmdTable.cmds[cmdIndex];
+    char* npath = concatStr(path[0], path[1]);
+    int fd = access(npath, F_OK);
+    if(fd == -1){
+        printf("Error Number: %d\n", errno);
+        perror("Error Description");
+        return 0;
+    }
+    else{
+        //printf("%s\n", npath);
+		argPass[0] = npath;
+		for (int i = 1; i <= argIndex; i++){
+		argPass[i] = cmdTable.argument[cmdIndex].args[i-1];
+		}
+		argPass[argIndex+1] = NULL;
+		
+    }
+	if (fork() == 0 ) {
+		for (int i = 0; i <= argIndex; i++){
+		//printf("%s\n", argPass[i]);
+		}
+		//printf("%d\n", argIndex);
+		execve(npath, argPass, NULL);
+	}
+	else{
+		wait(&check);
+		}
+	argIndex = 0;
+    return 1;
 }

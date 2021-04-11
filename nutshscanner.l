@@ -40,14 +40,13 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ 
 <string_condition>[\"]          {BEGIN(INITIAL);}
 
 [ ]		            { }
-bye                 { wordcount = 1; return BYE; }
+bye                 { wordcount = 1; return BYE;}
 crd		            { wordcount = 1; return CD;}
-alias		        { wordcount = 1; return ALIAS; }
+alias		        { wordcount = 1; return ALIAS;}
 setenv              { wordcount = 1; return SETENV;}
 printenv            { wordcount = 1; return PRINTENV;}
 unsetenv            { wordcount = 1; return UNSETENV;}
 unalias             { wordcount = 1; return UNALIAS;}
-cmd                 { wordcount = 1; return CMD;}
 "\n"		        { wordcount = 0; return END;}
 [\"]                { BEGIN(string_condition); }
 {CHAR}+             {if(ifAlias(yytext) && wordcount == 0) {
