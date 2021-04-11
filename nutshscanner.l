@@ -27,19 +27,34 @@ bool ifAlias(char* name){
     return false;
 }
 
+// bool varFound(char * var){
+//     for(int i = 0; i < varIndex; i++){
+//         if (strcmp(varTable.var[i],var) == 0){
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+// char* varReplace(char* var){
+//     for(int i = 0; i < varIndex; i++){
+//         return varTable.word[i];
+//     }
+//     return var;
+// }
+
 %}
 %array
 %option noyywrap
 
-CHAR            [.A-Za-z0-9!\/_-][.A-Za-z0-9!\/_-]*
+CHAR            [.A-Za-z0-9!\/:_-][.A-Za-z0-9!\/:_-]*
 ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -]*
 
 %x string_condition
 %%
 
-<string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
+<string_condition>{ANYCHAR}+    {yylval.string = strdup(yytext); return STRING;}
 <string_condition>[\"]          {BEGIN(INITIAL);}
-
+                       
 [ ]		            { }
 bye                 { wordcount = 1; return BYE;}
 cd		            { wordcount = 1; return CD;}
@@ -47,7 +62,7 @@ alias		        { wordcount = 1; return ALIAS;}
 setenv              { wordcount = 1; return SETENV;}
 printenv            { wordcount = 1; return PRINTENV;}
 unsetenv            { wordcount = 1; return UNSETENV;}
-unalias             { wordcount = 1; return UNALIAS;}
+unalias             { wordcount = 1; return UNALIAS;}    
 "\n"		        { wordcount = 0; return END;}
 [\"]                { BEGIN(string_condition); }
 {CHAR}+             {if(ifAlias(yytext) && wordcount == 0) {

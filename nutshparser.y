@@ -22,6 +22,7 @@ bool checkAlias(char* name);
 int RunBinCommands();
 char* concatStr(char* str1, char* str2);
 bool ifWhitespace(char* input);
+int RunPathSplitter();
 //double $$ symbol for value of group
 %}
 
@@ -42,8 +43,7 @@ cmd_line:
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	| arg_list END					{RunBinCommands(); return 1;}
-	| PRINTARG END					{return 1;}
+	| arg_list END					{RunBinCommands(); RunPathSplitter(); return 1;}
 ;
 arg_list:
 	STRING							{strcpy(cmdTable.cmds[cmdIndex], $1);
@@ -66,7 +66,27 @@ char* concatStr(char* str1, char* str2) {
     strcat(result, str2);
     return result;
 }
-
+int RunPathSplitter(){
+//loop through varTable.var[3] until there are no delimiters
+//take the delimiters, place them into pTable.paths[pathIndex]
+	char string[100];
+	char* token;
+	strcpy(string, varTable.word[3]);
+	//printf("%s\n", string);
+	token = malloc(sizeof(string));
+	token = strtok(string, ":");
+	token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
+	//strcpy(pTable.paths[count], token);
+	//count++;
+  		while (token != NULL)
+  		{
+		strcpy(pTable.paths[pathIndex], token);
+		printf("%s\n",pTable.paths[pathIndex]);
+		pathIndex++;
+		token = strtok(NULL, ":");
+  		}
+	return 1;
+}
 //env table
 // PWD = /mnt/e/Git/Nutshell/Nuts//.. (errors) [0]
 // HOME = /mnt/e/Git/Nutshell (doesn't change) [1]
@@ -213,7 +233,11 @@ int RunUnsetEnv (char* var) {
 // check for the data, replace with empty string
 // break out and have another loop to push everything by one
 // start from i+1, put 9 in the place of 8, etc
-int index;
+	if(strcmp(varTable.var[1], var) == 0 || strcmp(varTable.var[3], var ) == 0|| strcmp(varTable.var[2], var) == 0 || strcmp(varTable.var[0], var) == 0){
+		printf("Error: User cannot unsetenv %s\n", var);
+				return 1;
+	}
+	int index;
 	if (checkEnv(var) == true){
 		for(int i = 0; i < varIndex; i++){
 			if(strcmp(varTable.var[i], var) == 0) {
@@ -253,6 +277,9 @@ int RunBinCommands(){
 	int count;
 	char* argPass[argIndex+2];
     char* path[2];
+
+
+
     path[0] = "/bin/";
     path[1] = cmdTable.cmds[cmdIndex];
     char* npath = concatStr(path[0], path[1]);
@@ -262,7 +289,7 @@ int RunBinCommands(){
         perror("Error Description");
         return 0;
     }
-    else{
+    else {
         //printf("%s\n", npath);
 		argPass[0] = npath;
 		for (int i = 1; i <= argIndex; i++){

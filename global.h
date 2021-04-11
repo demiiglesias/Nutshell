@@ -21,17 +21,20 @@ struct argumentTable {
    char args[128][100];
    int argCount;
 };
-
+struct pathTable {
+   char paths[128][100];
+};
 struct commTable{
    char cmds[128][100];
    struct argumentTable argument[128];
 };
 char cwd[PATH_MAX];
 
+struct pathTable pTable;
 struct evTable varTable;
 struct aTable aliasTable;
 struct argumentTable argTable;
 struct commTable cmdTable;
 
-int aliasIndex, varIndex, cmdIndex, argIndex;
+int aliasIndex, varIndex, cmdIndex, argIndex, pathIndex;
 char* subAliases(char* name);
