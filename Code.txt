@@ -1,0 +1,19 @@
+		strncat(token, "/", 1);
+
+	int check;
+	int count;
+
+	for (int i = 0; i < argIndex; i++){ //get all paths
+	char* argPass[argIndex+2];
+    char* path[2];
+    path[0] = pTable.paths[i];
+    path[1] = cmdTable.cmds[cmdIndex];
+    char* npath = concatStr(path[0], path[1]);
+    int fd = access(npath, F_OK);
+    if(fd == -1){
+        printf("Error Number: %d\n", errno);
+        perror("Error Description");
+        return 0;
+    }
+
+	}

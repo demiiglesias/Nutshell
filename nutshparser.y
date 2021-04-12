@@ -43,7 +43,7 @@ cmd_line:
 	| UNSETENV STRING END			{RunUnsetEnv($2); return 1;}
 	| ALIAS END						{RunPrintAlias(); return 1;}
 	| UNALIAS STRING END 			{RunUnalias($2); return 1;}
-	| arg_list END					{RunBinCommands(); RunPathSplitter(); return 1;}
+	| arg_list END					{RunPathSplitter(); RunBinCommands(); return 1;}
 ;
 arg_list:
 	STRING							{strcpy(cmdTable.cmds[cmdIndex], $1);
@@ -69,6 +69,7 @@ char* concatStr(char* str1, char* str2) {
 int RunPathSplitter(){
 //loop through varTable.var[3] until there are no delimiters
 //take the delimiters, place them into pTable.paths[pathIndex]
+	pathIndex = 0;
 	char string[100];
 	char* token;
 	strcpy(string, varTable.word[3]);
@@ -81,7 +82,7 @@ int RunPathSplitter(){
   		while (token != NULL)
   		{
 		strcpy(pTable.paths[pathIndex], token);
-		printf("%s\n",pTable.paths[pathIndex]);
+		//printf("%s\n",pTable.paths[pathIndex]);
 		pathIndex++;
 		token = strtok(NULL, ":");
   		}
@@ -276,21 +277,28 @@ int RunBinCommands(){
 	int check;
 	int count;
 	char* argPass[argIndex+2];
+	char* fpath;
+	//printf("reached");
+	for (int i = 0; i < pathIndex; i++){ //get all paths
     char* path[2];
-
-
-
-    path[0] = "/bin/";
+	char* temp = strcat(pTable.paths[i], "/");
+	//printf("Temp path: %s\n", temp);
+    path[0] = temp;
     path[1] = cmdTable.cmds[cmdIndex];
     char* npath = concatStr(path[0], path[1]);
+	//printf("npath path: %s\n", npath);
     int fd = access(npath, F_OK);
-    if(fd == -1){
-        printf("Error Number: %d\n", errno);
+    if(fd == -1 && i+1 == pathIndex){ //iterated through all, no directory exists
+		printf("Error Number: %d\n", errno);
         perror("Error Description");
         return 0;
+	}
+	else if(fd == -1){ //directory does not have command
+		continue;
     }
-    else {
+    else { //command does exist
         //printf("%s\n", npath);
+		fpath = npath;
 		argPass[0] = npath;
 		for (int i = 1; i <= argIndex; i++){
 		argPass[i] = cmdTable.argument[cmdIndex].args[i-1];
@@ -298,12 +306,13 @@ int RunBinCommands(){
 		argPass[argIndex+1] = NULL;
 		
     }
+	}
 	if (fork() == 0 ) {
 		for (int i = 0; i <= argIndex; i++){
 		//printf("%s\n", argPass[i]);
 		}
 		//printf("%d\n", argIndex);
-		execve(npath, argPass, NULL);
+		execve(fpath, argPass, NULL);
 	}
 	else{
 		wait(&check);
