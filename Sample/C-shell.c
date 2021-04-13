@@ -17,3 +17,21 @@ int main(){
     return 0;
 
 }
+int main(int argc, char *argv[])
+{
+    glob_t  paths;
+    int     csource;
+    char    **p;
+     
+    printf("argv[0] = %s\n", argv[0]);
+    printf("argv[1] = %s\n", argv[1]);  /* Argument I want to use as pathname */
+     
+    /* Find all ".c" files in given directory*/
+    csource = glob("*.c", 0, NULL, &paths);
+     
+    if (csource == 0)
+    {
+        for (p=paths.gl_pathv; *p != NULL; ++p)
+            puts(*p);
+        globfree(&paths);
+    }

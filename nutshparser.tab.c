@@ -69,6 +69,7 @@
 #line 1 "nutshparser.y"
 
 #include <stdio.h>
+#include <fnmatch.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -94,7 +95,7 @@ bool ifWhitespace(char* input);
 int RunPathSplitter();
 //double $$ symbol for value of group
 
-#line 98 "nutshparser.tab.c"
+#line 99 "nutshparser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -160,11 +161,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 29 "nutshparser.y"
+#line 30 "nutshparser.y"
 
 	char *string;
 
-#line 168 "nutshparser.tab.c"
+#line 169 "nutshparser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -540,8 +541,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    38,    38,    39,    40,    41,    42,    43,    44,    45,
-      46,    49,    52
+       0,    39,    39,    40,    41,    42,    43,    44,    45,    46,
+      47,    50,    53
 };
 #endif
 
@@ -1340,75 +1341,75 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 38 "nutshparser.y"
+#line 39 "nutshparser.y"
                                                 {exit(1); return 1; }
-#line 1346 "nutshparser.tab.c"
+#line 1347 "nutshparser.tab.c"
     break;
 
   case 3:
-#line 39 "nutshparser.y"
+#line 40 "nutshparser.y"
                                                 {runCD((yyvsp[-1].string)); return 1;}
-#line 1352 "nutshparser.tab.c"
+#line 1353 "nutshparser.tab.c"
     break;
 
   case 4:
-#line 40 "nutshparser.y"
+#line 41 "nutshparser.y"
                                                 {runSetAlias((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
-#line 1358 "nutshparser.tab.c"
+#line 1359 "nutshparser.tab.c"
     break;
 
   case 5:
-#line 41 "nutshparser.y"
+#line 42 "nutshparser.y"
                                                 {RunSetEnv((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
-#line 1364 "nutshparser.tab.c"
+#line 1365 "nutshparser.tab.c"
     break;
 
   case 6:
-#line 42 "nutshparser.y"
+#line 43 "nutshparser.y"
                                                 {RunPrintEnv(); return 1;}
-#line 1370 "nutshparser.tab.c"
+#line 1371 "nutshparser.tab.c"
     break;
 
   case 7:
-#line 43 "nutshparser.y"
+#line 44 "nutshparser.y"
                                                 {RunUnsetEnv((yyvsp[-1].string)); return 1;}
-#line 1376 "nutshparser.tab.c"
+#line 1377 "nutshparser.tab.c"
     break;
 
   case 8:
-#line 44 "nutshparser.y"
+#line 45 "nutshparser.y"
                                                                 {RunPrintAlias(); return 1;}
-#line 1382 "nutshparser.tab.c"
+#line 1383 "nutshparser.tab.c"
     break;
 
   case 9:
-#line 45 "nutshparser.y"
+#line 46 "nutshparser.y"
                                                 {RunUnalias((yyvsp[-1].string)); return 1;}
-#line 1388 "nutshparser.tab.c"
+#line 1389 "nutshparser.tab.c"
     break;
 
   case 10:
-#line 46 "nutshparser.y"
+#line 47 "nutshparser.y"
                                                         {RunPathSplitter(); RunBinCommands(); return 1;}
-#line 1394 "nutshparser.tab.c"
+#line 1395 "nutshparser.tab.c"
     break;
 
   case 11:
-#line 49 "nutshparser.y"
+#line 50 "nutshparser.y"
                                                                 {strcpy(cmdTable.cmds[cmdIndex], (yyvsp[0].string));
 									cmdTable.argument[cmdIndex].argCount++;}
-#line 1401 "nutshparser.tab.c"
+#line 1402 "nutshparser.tab.c"
     break;
 
   case 12:
-#line 52 "nutshparser.y"
+#line 53 "nutshparser.y"
                                                         {strcpy(cmdTable.argument[cmdIndex].args[argIndex], (yyvsp[0].string));
 									argIndex++;}
-#line 1408 "nutshparser.tab.c"
+#line 1409 "nutshparser.tab.c"
     break;
 
 
-#line 1412 "nutshparser.tab.c"
+#line 1413 "nutshparser.tab.c"
 
       default: break;
     }
@@ -1640,7 +1641,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 55 "nutshparser.y"
+#line 56 "nutshparser.y"
 
 
 int yyerror(char *s) {
@@ -1665,13 +1666,13 @@ int RunPathSplitter(){
 	//printf("%s\n", string);
 	token = malloc(sizeof(string));
 	token = strtok(string, ":");
-	token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
-	//strcpy(pTable.paths[count], token);
-	//count++;
+	//token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
+	strcpy(pTable.paths[pathIndex], token);
+	pathIndex++;
   		while (token != NULL)
   		{
 		strcpy(pTable.paths[pathIndex], token);
-		//printf("%s\n",pTable.paths[pathIndex]);
+		//printf("ptable: %s\n",pTable.paths[pathIndex]);
 		pathIndex++;
 		token = strtok(NULL, ":");
   		}
@@ -1723,6 +1724,9 @@ bool checkAlias(char* name){
 // a == b 
 // b != a
 int runSetAlias(char *name, char *word) {
+	// alias a b
+	// alias b c
+	// alias c a 
 	for (int i = 0; i < aliasIndex; i++) {
 		if(strcmp(name, word) == 0){ 
 			printf("Error1, expansion of \"%s\" would create a loop.\n", name);
@@ -1739,7 +1743,7 @@ int runSetAlias(char *name, char *word) {
 					return 1;
 				}
 			}
-		}
+		} 
 		else if(strcmp(aliasTable.name[i], name) == 0) {
 			strcpy(aliasTable.word[i], word);
 			return 1;
@@ -1893,7 +1897,6 @@ int RunBinCommands(){
 		argPass[i] = cmdTable.argument[cmdIndex].args[i-1];
 		}
 		argPass[argIndex+1] = NULL;
-		
     }
 	}
 	if (fork() == 0 ) {
@@ -1909,3 +1912,8 @@ int RunBinCommands(){
 	argIndex = 0;
     return 1;
 }
+
+// token
+// check if not $
+// if has {
+// next ch ones to expand

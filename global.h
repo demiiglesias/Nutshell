@@ -19,12 +19,14 @@ struct aTable {
 };
 struct argumentTable {
    char args[128][100];
-   int argCount;
+   int argCount; //replace argIndex with this for each cmd
 };
 struct pathTable {
    char paths[128][100];
 };
 struct commTable{
+   char in[128][100];
+   char out[128][100];
    char cmds[128][100];
    struct argumentTable argument[128];
 };

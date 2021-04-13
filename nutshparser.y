@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <fnmatch.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -76,13 +77,13 @@ int RunPathSplitter(){
 	//printf("%s\n", string);
 	token = malloc(sizeof(string));
 	token = strtok(string, ":");
-	token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
-	//strcpy(pTable.paths[count], token);
-	//count++;
+	//token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
+	strcpy(pTable.paths[pathIndex], token);
+	pathIndex++;
   		while (token != NULL)
   		{
 		strcpy(pTable.paths[pathIndex], token);
-		//printf("%s\n",pTable.paths[pathIndex]);
+		//printf("ptable: %s\n",pTable.paths[pathIndex]);
 		pathIndex++;
 		token = strtok(NULL, ":");
   		}
@@ -134,6 +135,9 @@ bool checkAlias(char* name){
 // a == b 
 // b != a
 int runSetAlias(char *name, char *word) {
+	// alias a b
+	// alias b c
+	// alias c a 
 	for (int i = 0; i < aliasIndex; i++) {
 		if(strcmp(name, word) == 0){ 
 			printf("Error1, expansion of \"%s\" would create a loop.\n", name);
@@ -150,7 +154,7 @@ int runSetAlias(char *name, char *word) {
 					return 1;
 				}
 			}
-		}
+		} 
 		else if(strcmp(aliasTable.name[i], name) == 0) {
 			strcpy(aliasTable.word[i], word);
 			return 1;
@@ -304,7 +308,6 @@ int RunBinCommands(){
 		argPass[i] = cmdTable.argument[cmdIndex].args[i-1];
 		}
 		argPass[argIndex+1] = NULL;
-		
     }
 	}
 	if (fork() == 0 ) {
@@ -320,3 +323,8 @@ int RunBinCommands(){
 	argIndex = 0;
     return 1;
 }
+
+// token
+// check if not $
+// if has {
+// next ch ones to expand
