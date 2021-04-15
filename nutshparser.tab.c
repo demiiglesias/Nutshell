@@ -74,9 +74,13 @@
 #include <unistd.h>
 #include <string.h>
 #include "global.h"
+#include <unistd.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <errno.h>
+
 extern int errno;
 int yylex();
 int yyerror(char* s);
@@ -92,10 +96,12 @@ bool checkAlias(char* name);
 int RunBinCommands();
 char* concatStr(char* str1, char* str2);
 bool ifWhitespace(char* input);
+bool ifCmdPath(char** argPass, int currentCommand);
 int RunPathSplitter();
+void RunWildCardExpan(char* arg);void RunPipes();
 //double $$ symbol for value of group
 
-#line 99 "nutshparser.tab.c"
+#line 105 "nutshparser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -132,7 +138,7 @@ int RunPathSplitter();
 # define YY_YY_NUTSHPARSER_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -161,11 +167,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 30 "nutshparser.y"
+#line 36 "nutshparser.y"
 
 	char *string;
 
-#line 169 "nutshparser.tab.c"
+#line 175 "nutshparser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -482,18 +488,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  19
+#define YYFINAL  20
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   25
+#define YYLAST   26
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  14
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  12
+#define YYNRULES  13
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  29
+#define YYNSTATES  30
 
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   268
@@ -541,8 +547,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    39,    39,    40,    41,    42,    43,    44,    45,    46,
-      47,    50,    53
+       0,    45,    45,    46,    47,    48,    49,    50,    51,    52,
+      53,    54,    57,    59
 };
 #endif
 
@@ -567,7 +573,7 @@ static const yytype_int16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF (-12)
+#define YYPACT_NINF (-11)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -581,9 +587,9 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       7,   -11,    -2,   -12,    -5,    -1,     0,    -7,     2,    18,
-      -4,   -12,     6,    15,   -12,    16,     9,   -12,    10,   -12,
-     -12,   -12,   -12,    11,    12,   -12,   -12,   -12,   -12
+       8,   -10,    -5,   -11,    -4,    -1,     0,    -7,     2,    19,
+      -3,   -11,     7,   -11,    16,   -11,    17,    10,   -11,    11,
+     -11,   -11,   -11,   -11,    12,    13,   -11,   -11,   -11,   -11
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -591,15 +597,15 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,    11,     0,     0,     0,     0,     0,     0,
-       0,     2,     0,     0,     8,     0,     0,     6,     0,     1,
-      12,    10,     3,     0,     0,     7,     9,     4,     5
+       0,     0,     0,    12,     0,     0,     0,     0,     0,     0,
+       0,     2,     0,     4,     0,     9,     0,     0,     7,     0,
+       1,    13,    11,     3,     0,     0,     8,    10,     5,     6
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -12,   -12,   -12
+     -11,   -11,   -11
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -613,16 +619,16 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      13,    20,    11,    12,    15,    16,    17,    18,    14,    21,
-       1,     2,     3,     4,     5,     6,     7,     8,    19,    22,
-      23,    24,    25,    26,    27,    28
+      12,    14,    21,    11,    16,    17,    18,    19,    13,    15,
+      22,     1,     2,     3,     4,     5,     6,     7,     8,    20,
+      23,    24,    25,    26,    27,    28,    29
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     5,    13,     5,     5,     5,    13,     5,    13,    13,
-       3,     4,     5,     6,     7,     8,     9,    10,     0,    13,
-       5,     5,    13,    13,    13,    13
+       5,     5,     5,    13,     5,     5,    13,     5,    13,    13,
+      13,     3,     4,     5,     6,     7,     8,     9,    10,     0,
+      13,     5,     5,    13,    13,    13,    13
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -630,22 +636,22 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,     3,     4,     5,     6,     7,     8,     9,    10,    15,
-      16,    13,     5,     5,    13,     5,     5,    13,     5,     0,
-       5,    13,    13,     5,     5,    13,    13,    13,    13
+      16,    13,     5,    13,     5,    13,     5,     5,    13,     5,
+       0,     5,    13,    13,     5,     5,    13,    13,    13,    13
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
        0,    14,    15,    15,    15,    15,    15,    15,    15,    15,
-      15,    16,    16
+      15,    15,    16,    16
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     2,     3,     4,     4,     2,     3,     2,     3,
-       2,     1,     2
+       0,     2,     2,     3,     2,     4,     4,     2,     3,     2,
+       3,     2,     1,     2
 };
 
 
@@ -1341,75 +1347,96 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 39 "nutshparser.y"
+#line 45 "nutshparser.y"
                                                 {exit(1); return 1; }
-#line 1347 "nutshparser.tab.c"
-    break;
-
-  case 3:
-#line 40 "nutshparser.y"
-                                                {runCD((yyvsp[-1].string)); return 1;}
 #line 1353 "nutshparser.tab.c"
     break;
 
-  case 4:
-#line 41 "nutshparser.y"
-                                                {runSetAlias((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
+  case 3:
+#line 46 "nutshparser.y"
+                                                {runCD((yyvsp[-1].string)); return 1;}
 #line 1359 "nutshparser.tab.c"
     break;
 
-  case 5:
-#line 42 "nutshparser.y"
-                                                {RunSetEnv((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
+  case 4:
+#line 47 "nutshparser.y"
+                                                                {runCD(varTable.word[1]); return 1;}
 #line 1365 "nutshparser.tab.c"
     break;
 
-  case 6:
-#line 43 "nutshparser.y"
-                                                {RunPrintEnv(); return 1;}
+  case 5:
+#line 48 "nutshparser.y"
+                                                {runSetAlias((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
 #line 1371 "nutshparser.tab.c"
     break;
 
-  case 7:
-#line 44 "nutshparser.y"
-                                                {RunUnsetEnv((yyvsp[-1].string)); return 1;}
+  case 6:
+#line 49 "nutshparser.y"
+                                                {RunSetEnv((yyvsp[-2].string), (yyvsp[-1].string)); return 1;}
 #line 1377 "nutshparser.tab.c"
     break;
 
-  case 8:
-#line 45 "nutshparser.y"
-                                                                {RunPrintAlias(); return 1;}
+  case 7:
+#line 50 "nutshparser.y"
+                                                {RunPrintEnv(); return 1;}
 #line 1383 "nutshparser.tab.c"
     break;
 
-  case 9:
-#line 46 "nutshparser.y"
-                                                {RunUnalias((yyvsp[-1].string)); return 1;}
+  case 8:
+#line 51 "nutshparser.y"
+                                                {RunUnsetEnv((yyvsp[-1].string)); return 1;}
 #line 1389 "nutshparser.tab.c"
     break;
 
-  case 10:
-#line 47 "nutshparser.y"
-                                                        {RunPathSplitter(); RunBinCommands(); return 1;}
+  case 9:
+#line 52 "nutshparser.y"
+                                                                {RunPrintAlias(); return 1;}
 #line 1395 "nutshparser.tab.c"
     break;
 
+  case 10:
+#line 53 "nutshparser.y"
+                                                {RunUnalias((yyvsp[-1].string)); return 1;}
+#line 1401 "nutshparser.tab.c"
+    break;
+
   case 11:
-#line 50 "nutshparser.y"
-                                                                {strcpy(cmdTable.cmds[cmdIndex], (yyvsp[0].string));
-									cmdTable.argument[cmdIndex].argCount++;}
-#line 1402 "nutshparser.tab.c"
+#line 54 "nutshparser.y"
+                                                        {RunPathSplitter(); RunBinCommands(); return 1;}
+#line 1407 "nutshparser.tab.c"
     break;
 
   case 12:
-#line 53 "nutshparser.y"
-                                                        {strcpy(cmdTable.argument[cmdIndex].args[argIndex], (yyvsp[0].string));
-									argIndex++;}
-#line 1409 "nutshparser.tab.c"
+#line 57 "nutshparser.y"
+                                                                {strcpy(cmdTable.cmds[cmdIndex], (yyvsp[0].string));}
+#line 1413 "nutshparser.tab.c"
+    break;
+
+  case 13:
+#line 59 "nutshparser.y"
+                                                        {if(strcmp((yyvsp[0].string), "|") == 0) {
+									cmdIndex++;
+									printf("commandindex- %d\n", cmdIndex);
+									cmdCheck = 1; //the next STRING is a command
+									}
+									else if(strstr((yyvsp[0].string), "?") || strstr((yyvsp[0].string), "*")){
+										//printf("caught");
+										RunWildCardExpan((yyvsp[0].string));
+									}	
+									else if(cmdCheck == 1){
+										strcpy(cmdTable.cmds[cmdIndex], (yyvsp[0].string));
+										cmdCheck = 0; //the next STRING is an argument
+									}
+									else {
+										strcpy(cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount], (yyvsp[0].string));
+										cmdTable.argument[cmdIndex].argCount++;
+										//argIndex++;
+									};}
+#line 1436 "nutshparser.tab.c"
     break;
 
 
-#line 1413 "nutshparser.tab.c"
+#line 1440 "nutshparser.tab.c"
 
       default: break;
     }
@@ -1641,7 +1668,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 56 "nutshparser.y"
+#line 79 "nutshparser.y"
 
 
 int yyerror(char *s) {
@@ -1684,10 +1711,56 @@ int RunPathSplitter(){
 // one function for defaults, one with one argument, one with two arguments
 int runCD(char* arg) {
 	if (arg[0] != '/') { // arg is relative path
+		// char* tkn = strtok(arg,"/");
 		strcat(varTable.word[0], "/");
 		strcat(varTable.word[0], arg);
+		char* token = &arg[1];
+		printf("token: %s\n", token);
+		if(strcmp(arg,"~") == 0){//bring home
+			chdir(varTable.word[1]);
+			strcpy(varTable.word[0], varTable.word[1]);
+		}
+		printf("token: %s\n", token);
+		else if(arg[0] == '~'){
+			printf("reached");
+			char* temp;
+			if (strcmp(token, "/") == 0){ //cd ~/testdir
+				token = strtok("~", arg);
+				printf("token: %s\n", token);
+				strcpy(temp, strcat(varTable.word[1], arg));
+				printf("token: %s\n", temp);
+				if(!chdir(temp)){
+					printf("Directory not found\n");
+					return 1;
+				}
+				strcpy(varTable.word[0], temp);
+			}
+			else { //relative path
+				token = strtok("~", arg);
 
-		if(chdir(varTable.word[0]) == 0) {
+				strcpy(temp, strcat(varTable.word[1], arg));
+
+			}
+		}
+		else if(strcmp(arg,".") == 0){ 
+			chdir(varTable.word[0]);
+			return 1;
+		} 
+		else if(strcmp(&arg[0],".") == 0){
+			arg[0] = arg[0] + 1;
+			chdir("HOME/..");
+			if(chdir(arg[0]!=0)){
+				arg[0]= getenv("HOME");
+				chdir(varTable.word[1]);
+				return 1;
+			}
+		}
+		else if(strcmp(arg,"..") == 0){
+			chdir("..");
+			strcpy(varTable.word[0], getcwd(cwd, sizeof(cwd)));
+			return 1;
+		}
+		else if(chdir(varTable.word[0]) == 0) {
 			return 1;
 		}
 		else {
@@ -1709,6 +1782,7 @@ int runCD(char* arg) {
 	}
 }
 
+
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
         if((strcmp(aliasTable.name[i], name)) == 0) {
@@ -1719,15 +1793,12 @@ bool checkAlias(char* name){
 	return false;
 }
 
-//does this account for the infinite loop?
-// a = name , b = word
-// a == b 
-// b != a
+
 int runSetAlias(char *name, char *word) {
 	// alias a b
 	// alias b c
-	// alias c a 
-	for (int i = 0; i < aliasIndex; i++) {
+	// alias c a
+	for (int i = 0; i <= aliasIndex; i++) {
 		if(strcmp(name, word) == 0){ 
 			printf("Error1, expansion of \"%s\" would create a loop.\n", name);
 			return 1;
@@ -1736,14 +1807,45 @@ int runSetAlias(char *name, char *word) {
 			printf("Error2, expansion of \"%s\" would create a loop.\n", name);
 			return 1;
 		}
-		else if(!(strcmp(aliasTable.name[i], name) == 0) && !(strcmp(aliasTable.word[i], word) == 0)){
+		else if(!(strcmp(aliasTable.name[i], name) == 0) && !(strcmp(aliasTable.word[i], word) == 0)){ // a and b
 			for (int j = 0; j < aliasIndex; j++){
 				if((strcmp(aliasTable.name[j], word) == 0) && (strcmp(aliasTable.word[j], name) == 0)){
 					printf("Error3, expansion of \"%s\" would create a loop.\n", name);
 					return 1;
 				}
 			}
-		} 
+			//character array[][]
+			//char* = passed in name to be checked against the others
+			//continually check what the word of the previous name is equal to
+		}
+		// else if (!(strcmp(aliasTable.name[i], name) == 0) && !(strcmp(aliasTable.word[i], word) == 0)){
+		// 	printf("here");
+		// 	char* compn[100];
+		// 	char* compw[100];
+		// 	strcpy(compw, word);
+		// 	int temp;
+
+		// 	for (int j = 0; j < aliasIndex; j++){ //name
+		// 	if (strcmp(compn, compw) == 0){
+		// 		printf("Error4, expansion of \"%s\" would create a loop.\n", name);
+		// 		return 1;
+		// 	}
+		// 	else if (strcmp(aliasTable.word[j], compn) == 0)){
+		// 		temp = k;//we know that k at the name index is equal to the current 
+		// 		compn = aliasTable.name[k];
+		// 		j = 0;
+		// 	}
+		// 			for(int k = 0; j < aliasIndex; k++){ //word
+		// 				if(strcmp(aliasTable.name[k], compw) == 0){
+		// 					temp = k;//we know that k at the name index is equal to the current 
+		// 					compn = aliasTable.name[k];
+		// 					j = 0;
+		// 					break; 
+							
+		// 				}
+		// 		}
+		// 	}
+		// }
 		else if(strcmp(aliasTable.name[i], name) == 0) {
 			strcpy(aliasTable.word[i], word);
 			return 1;
@@ -1824,9 +1926,6 @@ int RunPrintEnv() {
 }
 
 int RunUnsetEnv (char* var) {
-// check for the data, replace with empty string
-// break out and have another loop to push everything by one
-// start from i+1, put 9 in the place of 8, etc
 	if(strcmp(varTable.var[1], var) == 0 || strcmp(varTable.var[3], var ) == 0|| strcmp(varTable.var[2], var) == 0 || strcmp(varTable.var[0], var) == 0){
 		printf("Error: User cannot unsetenv %s\n", var);
 				return 1;
@@ -1856,6 +1955,7 @@ int RunUnsetEnv (char* var) {
 	}	
 }
 
+
 bool ifWhitespace(char* input) {
 for (int i = 0; i < strlen(input); i++) {
      if (input[i] == '\t' || input[i] == ' '){
@@ -1865,55 +1965,209 @@ for (int i = 0; i < strlen(input); i++) {
     } 
 }
 
-// runs command
-int RunBinCommands(){
-	int check;
-	int count;
-	char* argPass[argIndex+2];
-	char* fpath;
-	//printf("reached");
+
+bool ifCmdPath(char** argPass, int currCommand){
 	for (int i = 0; i < pathIndex; i++){ //get all paths
     char* path[2];
 	char* temp = strcat(pTable.paths[i], "/");
 	//printf("Temp path: %s\n", temp);
     path[0] = temp;
-    path[1] = cmdTable.cmds[cmdIndex];
+    path[1] = cmdTable.cmds[currCommand];
     char* npath = concatStr(path[0], path[1]);
 	//printf("npath path: %s\n", npath);
     int fd = access(npath, F_OK);
     if(fd == -1 && i+1 == pathIndex){ //iterated through all, no directory exists
 		printf("Error Number: %d\n", errno);
         perror("Error Description");
-        return 0;
+        return false;
 	}
 	else if(fd == -1){ //directory does not have command
 		continue;
     }
     else { //command does exist
         //printf("%s\n", npath);
-		fpath = npath;
+		//fpath = npath;
 		argPass[0] = npath;
-		for (int i = 1; i <= argIndex; i++){
-		argPass[i] = cmdTable.argument[cmdIndex].args[i-1];
+		for (int i = 1; i <= cmdTable.argument[currCommand].argCount; i++){
+		argPass[i] = cmdTable.argument[currCommand].args[i-1];
 		}
-		argPass[argIndex+1] = NULL;
-    }
-	}
-	if (fork() == 0 ) {
-		for (int i = 0; i <= argIndex; i++){
-		//printf("%s\n", argPass[i]);
-		}
-		//printf("%d\n", argIndex);
-		execve(fpath, argPass, NULL);
-	}
-	else{
-		wait(&check);
-		}
-	argIndex = 0;
-    return 1;
+		argPass[cmdTable.argument[currCommand].argCount+1] = NULL;
+		//printf("true");
+		return true;
+    }	
+}
 }
 
-// token
-// check if not $
-// if has {
-// next ch ones to expand
+
+int RunBinCommands(){
+	int check;
+	int count;
+	char* argPass[cmdTable.argument[0].argCount+2]; //first command
+	if (cmdIndex > 0) {
+		//place pipes here
+		RunPipes();
+		return 1;
+	}
+	else {
+		if (ifCmdPath(argPass, 0)){ //first command
+			if (fork() == 0 ) {
+				execve(argPass[0], argPass, NULL);
+			}
+			else{
+				wait(&check);
+				}
+				// argIndex = 0;
+				cmdTable.argument[0].argCount = 0;
+    			memset(cmdTable.argument[0].args, 0, sizeof(cmdTable.argument[0].args));
+				return 1;
+			}
+	}
+	cmdTable.argument[0].argCount = 0;
+    memset(cmdTable.argument[0].args, 0, sizeof(cmdTable.argument[0].args));
+	// argIndex = 0;
+	return 1; 
+}
+	// for (int i = 0; i < cmdTable.argument[0].argCount; i++){
+	// 	printf("command[0] argument: %s\n", cmdTable.argument[0].args[i]);
+	// }
+	//$2 = *.txt, it should replace all arguments with anything matching the .txt
+	//*.txt = Code.txt text2.txt text3.txt
+	//Co?e.txt
+	// te?.txt
+void RunWildCardExpan(char* arg){
+	//it will increase the command arg count for each command
+	//it will change the given argument that is passed into it into more arguments 
+	int count = 0;
+	DIR *d;
+  	struct dirent *dir;
+  	d = opendir(".");
+  	if (d) {
+    	while ((dir = readdir(d)) != NULL) {
+      		if(fnmatch(arg, dir->d_name, 0) == 0){
+				//printf("%s\n", dir->d_name);
+				strcpy(cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount], dir->d_name);
+				//printf("args: %s\n", cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount]);
+				cmdTable.argument[cmdIndex].argCount++;
+				count++;
+			  } 
+    	}
+    closedir(d);
+  	}
+	if(count == 0){
+		printf("Error: %s does not exist in current directory.\n", arg);
+		strcpy(cmdTable.cmds[cmdIndex], "");
+	}
+			  
+//return;
+}
+
+void RunPipes(){}
+// 	int numPipes = cmdIndex;
+//     pid_t pid;
+// 	int fd[2*numPipes];
+// 	char* argPass[argIndex+2];
+	
+// 	/* parent creates all needed pipes at the start */
+// 	for (int i = 0; i < numPipes; i++){ //number of pipes that we have
+// 		if(pipe(fd + i*2) < 0){
+// 			perror("did not create parent pipes");
+// 			exit(EXIT_FAILURE);
+// 			return;
+// 		}
+// 	}	
+// 	cmdc = 0; //command count
+
+// 	while(cmdIndex-- || cmdIndex !=0){ //while there are commands left
+// 		pid = fork();
+// 		if (pid == 0){ //there is a previous command
+//  			printf("enter 2\n");
+// 			dup2(fd[cmdIndex+1], STDOUT_FILENO);
+//  			close(fd[cmdIndex]);
+//  			printf("error");
+
+// 			if(cmdIndex > 0){ // there is another command
+// 				if(dup2(fd[(cmdc-1*2)], 0) < 0){
+// 					perror("messed up");
+// 					return;
+// 				}
+// 			}	
+			
+// 			if(cmdIndex != 0){ // ??
+// 				if(dup2(fd[cmdc*2+1], 1) < 0){
+// 					perror("messed up");
+// 					return;
+// 				}
+// 			}
+// 			for(int i  = 0; i < numPipes; i++){
+// 				close(fd[(cmdc-1*2)]);
+// 				close(fd[cmdc*2+1]);
+// 			}
+// 			execve(); // took out arg pass should i add back in ??
+// 			perror("did not execute correctly");
+// 			exit(EXIT_FAILURE);
+// 		}
+// 		cmd -> next; // increment command here *missing* ??
+// 		cmdc++;
+// 	}
+
+// }
+// void RunPipes(){
+// 	int numPipes = cmdIndex;
+//     pid_t pid;
+// 	int fd[numPipes][2];
+	
+// 	for (int i = 0; i < numPipes; i++){ //number of pipes that we have
+// 		pipe(fd[i]);
+// 	}
+// 	// Go through parent and child processes for however many pipes there are
+// 	for(int i = 0; i <= numPipes; i++){
+// 		char* argPass[argIndex+2];
+// 		int currCommand = i;
+
+// 		if (ifCmdPath(argPass, currCommand)){
+// 		pid = fork();
+// 		printf("int i: %d,", i);
+// 		printf("pid = %ld\n", (long) pid);
+		
+// 		if(pid == 0){
+// 			printf("enter 0");
+// 			for (int j = 0; j < numPipes; j++){
+// 				printf("enter 1");
+// 				if(j == i){ // open write side
+// 					printf("enter 2");
+// 					dup2(fd[j][1], STDOUT_FILENO);
+// 					close(fd[j][0]);
+// 					printf("error");
+// 				}
+// 				else if(j == i -1){ //open read side
+// 					dup2(fd[j][0], STDOUT_FILENO);
+// 					close(fd[j][1]);
+// 					printf("error");
+// 				} 
+// 				else {
+// 					close(fd[j][0]);
+// 					close(fd[j][1]);
+// 				}
+// 				execve(argPass[0], argPass, NULL);
+// 				close(fd[i][0]);
+// 				if(i > 0)
+// 					close(fd[i-1][0]);
+				
+// 			}
+// 		 	waitpid(pid, 0, 0);
+// 		} else if(pid < 0){
+// 			perror("fork failed");
+// 			return;
+// 		}
+// 		else{
+// 		cmdIndex = 0; 
+// 		printf("big sad, pid is greater than 0 and idk why");
+// 		} 
+		
+// 	}
+// 	cmdIndex = 0;
+// 		return;
+// 	}
+// 	cmdIndex = 0;
+// 		return;
+// }

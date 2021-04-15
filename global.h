@@ -38,5 +38,5 @@ struct aTable aliasTable;
 struct argumentTable argTable;
 struct commTable cmdTable;
 
-int aliasIndex, varIndex, cmdIndex, argIndex, pathIndex;
+int aliasIndex, varIndex, cmdIndex, argIndex, pathIndex, cmdCheck;
 char* subAliases(char* name);
