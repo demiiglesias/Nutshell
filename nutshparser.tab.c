@@ -74,7 +74,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "global.h"
-#include <unistd.h>
+
 #include <stdbool.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -1720,8 +1720,7 @@ int runCD(char* arg) {
 			chdir(varTable.word[1]);
 			strcpy(varTable.word[0], varTable.word[1]);
 		}
-		printf("token: %s\n", token);
-		else if(arg[0] == '~'){
+		else if(strcmp(&arg[0],"~") == 0){
 			printf("reached");
 			char* temp;
 			if (strcmp(token, "/") == 0){ //cd ~/testdir
@@ -1744,6 +1743,8 @@ int runCD(char* arg) {
 		}
 		else if(strcmp(arg,".") == 0){ 
 			chdir(varTable.word[0]);
+			getcwd(cwd, sizeof(cwd));
+			strcpy(varTable.word[0], cwd);
 			return 1;
 		} 
 		else if(strcmp(&arg[0],".") == 0){
@@ -1969,7 +1970,9 @@ for (int i = 0; i < strlen(input); i++) {
 bool ifCmdPath(char** argPass, int currCommand){
 	for (int i = 0; i < pathIndex; i++){ //get all paths
     char* path[2];
-	char* temp = strcat(pTable.paths[i], "/");
+	char* temp[64];
+	strcpy(temp, pTable.paths[i]);
+	strcat(temp, "/");
 	//printf("Temp path: %s\n", temp);
     path[0] = temp;
     path[1] = cmdTable.cmds[currCommand];
@@ -1992,6 +1995,7 @@ bool ifCmdPath(char** argPass, int currCommand){
 		argPass[i] = cmdTable.argument[currCommand].args[i-1];
 		}
 		argPass[cmdTable.argument[currCommand].argCount+1] = NULL;
+		memset(temp, 0, sizeof(temp));
 		//printf("true");
 		return true;
     }	
@@ -2016,7 +2020,6 @@ int RunBinCommands(){
 			else{
 				wait(&check);
 				}
-				// argIndex = 0;
 				cmdTable.argument[0].argCount = 0;
     			memset(cmdTable.argument[0].args, 0, sizeof(cmdTable.argument[0].args));
 				return 1;
@@ -2024,16 +2027,12 @@ int RunBinCommands(){
 	}
 	cmdTable.argument[0].argCount = 0;
     memset(cmdTable.argument[0].args, 0, sizeof(cmdTable.argument[0].args));
-	// argIndex = 0;
 	return 1; 
 }
 	// for (int i = 0; i < cmdTable.argument[0].argCount; i++){
 	// 	printf("command[0] argument: %s\n", cmdTable.argument[0].args[i]);
 	// }
-	//$2 = *.txt, it should replace all arguments with anything matching the .txt
-	//*.txt = Code.txt text2.txt text3.txt
-	//Co?e.txt
-	// te?.txt
+
 void RunWildCardExpan(char* arg){
 	//it will increase the command arg count for each command
 	//it will change the given argument that is passed into it into more arguments 
@@ -2061,7 +2060,124 @@ void RunWildCardExpan(char* arg){
 //return;
 }
 
-void RunPipes(){}
+
+void RunPipes(){
+	int numPipes = cmdIndex; //0 is first, 1 is second
+	pid_t pid;
+	int fd[numPipes][2];
+
+	for (int i = 0; i < numPipes; i++){ 
+		pipe(fd[i]);
+	}
+
+	int ccmd = 0; //current command
+
+	for(int i = 0; i <= numPipes; i++){
+		char* argPass[cmdTable.argument[i].argCount+2];
+		if (ifCmdPath(argPass, i)){
+			//printf("argpass[0]: %s\n", argPass[0]);
+			pid = fork();
+			
+			if(pid == 0){
+				for (int j = 0; j < numPipes; j++){
+					printf("j %i\n", j);
+					if(j == i){ // open write side
+						printf("argpass[0] write: %s\n", argPass[0]);
+						dup2(fd[j][1], 1);
+						close(fd[j][0]);
+						close(fd[j][1]);
+						perror("Error with write side of the pipe");
+					}
+					else if(j == i-1){ //open read side
+						printf("argpass[0] read: %s\n", argPass[0]);
+						close(fd[j][0]);
+						dup2(fd[j][0], 0);
+						close(fd[j][1]);
+						perror("Error with read side of the pipe");
+					} 
+					else {
+						close(fd[j][0]);
+						close(fd[j][1]);
+					}		
+				}
+					printf("argcount for %d: %d\n", i, cmdTable.argument[i].argCount);
+					for (int i = 0; i < cmdTable.argument[i].argCount+2; i++){
+						printf("command[0] argument: %s\n", argPass[i]);
+					}
+				execve(argPass[0], argPass, NULL);
+				close(fd[i][0]);
+				
+				if(i > 0){
+					close(fd[i-1][0]);
+				}
+				exit(0);
+				
+			} 
+			else if(pid < 0){
+				perror("fork failed");
+				return;
+			}
+			waitpid(pid, 0, 0);		
+		}	
+		//mccmd++;
+		memset(argPass, 0, sizeof(argPass));
+	}
+}
+// 	Go through parent and child processes for however many pipes there are
+// 	for(int i = 0; i <= numPipes; i++){
+// 		char* argPass[argIndex+2];
+// 		int currCommand = i;
+
+// 		if (ifCmdPath(argPass, currCommand)){
+// 		pid = fork();
+// 		printf("int i: %d,", i);
+// 		printf("pid = %ld\n", (long) pid);
+		
+// 		if(pid == 0){
+// 			printf("enter 0");
+// 			for (int j = 0; j < numPipes; j++){
+// 				printf("enter 1");
+// 				if(j == i){ // open write side
+// 					printf("enter 2");
+// 					dup2(fd[j][1], STDOUT_FILENO);
+// 					close(fd[j][0]);
+// 					printf("error");
+// 				}
+// 				else if(j == i -1){ //open read side
+// 					dup2(fd[j][0], STDOUT_FILENO);
+// 					close(fd[j][1]);
+// 					printf("error");
+// 				} 
+// 				else {
+// 					close(fd[j][0]);
+// 					close(fd[j][1]);
+// 				}
+// 				execve(argPass[0], argPass, NULL);
+// 				close(fd[i][0]);
+// 				if(i > 0)
+// 					close(fd[i-1][0]);
+				
+// 			}
+// 		 	waitpid(pid, 0, 0);
+// 		} else if(pid < 0){
+// 			perror("fork failed");
+// 			return;
+// 		}
+// 		else{
+// 		cmdIndex = 0; 
+// 		printf("big sad, pid is greater than 0 and idk why");
+// 		} 
+		
+// 	}
+// 	cmdIndex = 0;
+// 		return;
+// 	}
+// 	cmdIndex = 0;
+// 		return;
+// }
+
+
+// void RunPipes(){
 // 	int numPipes = cmdIndex;
 //     pid_t pid;
 // 	int fd[2*numPipes];
@@ -2075,9 +2191,9 @@ void RunPipes(){}
 // 			return;
 // 		}
 // 	}	
-// 	cmdc = 0; //command count
+// 	int cmdc = 0; //command count
 
-// 	while(cmdIndex-- || cmdIndex !=0){ //while there are commands left
+// 	while( cmdIndex !=0){ //while there are commands left
 // 		pid = fork();
 // 		if (pid == 0){ //there is a previous command
 //  			printf("enter 2\n");
@@ -2102,13 +2218,19 @@ void RunPipes(){}
 // 				close(fd[(cmdc-1*2)]);
 // 				close(fd[cmdc*2+1]);
 // 			}
-// 			execve(); // took out arg pass should i add back in ??
+// 			execve(argPass[0], argPass, NULL); // took out arg pass should i add back in ??
 // 			perror("did not execute correctly");
 // 			exit(EXIT_FAILURE);
 // 		}
-// 		cmd -> next; // increment command here *missing* ??
+// 		cmdIndex++; // increment command here *missing* ??
 // 		cmdc++;
 // 	}
+// }
+
+
+
+
+
 
 // }
 // void RunPipes(){
