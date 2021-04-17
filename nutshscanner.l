@@ -68,7 +68,7 @@ void envExpan(char* input, char* final){
             envNum++;
             token = strtok(NULL, "${}");
             }
-        printf("envNum: %d\n", envNum);
+        // printf("envNum: %d\n", envNum);
         for (int i = 0; i < envNum; i++) {
             if (varExist(envVars[i])){
                 //printf("env Vars subbed: %s, ",envVars[i]);
