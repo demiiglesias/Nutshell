@@ -30,7 +30,9 @@ char* concatStr(char* str1, char* str2);
 bool ifWhitespace(char* input);
 bool ifCmdPath(char** argPass, int currentCommand);
 int RunPathSplitter();
-void RunWildCardExpan(char* arg);void RunPipes();
+void RunWildCardExpan(char* arg);
+void RunPipes();
+bool loopCheck(char* name, char* word);
 //double $$ symbol for value of group
 %}
 
@@ -59,11 +61,9 @@ arg_list:
 	
 	| arg_list STRING				{if(strcmp($2, "|") == 0) {
 									cmdIndex++;
-									printf("commandindex- %d\n", cmdIndex);
 									cmdCheck = 1; //the next STRING is a command
 									}
 									else if(strstr($2, "?") || strstr($2, "*")){
-										//printf("caught");
 										RunWildCardExpan($2);
 									}	
 									else if(cmdCheck == 1){
@@ -73,7 +73,6 @@ arg_list:
 									else {
 										strcpy(cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount], $2);
 										cmdTable.argument[cmdIndex].argCount++;
-										//argIndex++;
 									};}
 ;
 
@@ -91,6 +90,29 @@ char* concatStr(char* str1, char* str2) {
     strcat(result, str2);
     return result;
 }
+//complete
+bool loopCheck(char* name, char* word){
+int index;
+char temp[100];
+strcpy(temp, word);
+while(true){
+	index = 0;
+	while(true){
+		if (index >= aliasIndex){
+			return false;
+		}
+		else if (strcmp(aliasTable.name[index], temp) == 0){
+			strcpy(temp, aliasTable.word[index]);
+			if (strcmp(temp, name) == 0){
+				return true;
+			}
+			break;
+		}
+	index++;
+	}
+}
+}
+//complete
 int RunPathSplitter(){
 //loop through varTable.var[3] until there are no delimiters
 //take the delimiters, place them into pTable.paths[pathIndex]
@@ -98,16 +120,13 @@ int RunPathSplitter(){
 	char string[100];
 	char* token;
 	strcpy(string, varTable.word[3]);
-	//printf("%s\n", string);
 	token = malloc(sizeof(string));
 	token = strtok(string, ":");
-	//token = strtok(NULL, ":"); //this may need to be fixed depending on what they change the path to ".:"
 	strcpy(pTable.paths[pathIndex], token);
 	pathIndex++;
   		while (token != NULL)
   		{
 		strcpy(pTable.paths[pathIndex], token);
-		//printf("ptable: %s\n",pTable.paths[pathIndex]);
 		pathIndex++;
 		token = strtok(NULL, ":");
   		}
@@ -139,32 +158,36 @@ int runCD(char* arg) {
 			return 1;
 		} 
 		else if(arg[0] == '~'){
-			printf("reached");
 			char* temp[100];
+			char* home[100];
 			if (token[0] == '/'){ //cd ~/testdir
 				strcpy(temp, varTable.word[0]);
-				//token = strcat("/", token);
-				strcat(varTable.word[0], token);
-				printf("relative path ~ path: %s\n", varTable.word[0]);
-				if(chdir(varTable.word[0]) == 0){
+				strcpy(home, varTable.word[1]);
+				strcat(varTable.word[1], token);
+				if(chdir(varTable.word[1]) == 0){
+					strcpy(varTable.word[0], varTable.word[1]);
+					strcpy(varTable.word[1], home);
 					return 1;
 				}
 				else {
+					strcpy(varTable.word[1], home);
 					strcpy(varTable.word[0], temp);
 					printf("Directory not found\n");
                     return 1;
 				}
 			}
 			else { //relative path, cd ~testdir
-				//print
 				strcpy(temp, varTable.word[0]);
-				strcat(varTable.word[0], "/");
-				strcat(varTable.word[0], token);
-				printf("relative path ~ path: %s\n", varTable.word[0]);
-				if(chdir(varTable.word[0]) == 0){
+				strcpy(home, varTable.word[1]);
+				strcat(varTable.word[1], "/");
+				strcat(varTable.word[1], token);
+				if(chdir(varTable.word[1]) == 0){
+					strcpy(varTable.word[0], varTable.word[1]);
+					strcpy(varTable.word[1], home);
 					return 1;
 				}
 				else {
+					strcpy(varTable.word[1], home);
 					strcpy(varTable.word[0], temp);
 					printf("Directory not found\n");
                     return 1;
@@ -173,13 +196,10 @@ int runCD(char* arg) {
 			}
 		}
 		else if(arg[0] == '.'){
-			printf("reached");
 			char* temp[100];
 			if (token[0] == '/'){ //cd ./testdir
 				strcpy(temp, varTable.word[0]);
-				//token = strcat("/", token);
 				strcat(varTable.word[0], token);
-				printf("relative path . path: %s\n", varTable.word[0]);
 				if(chdir(varTable.word[0]) == 0){
 					return 1;
 				}
@@ -190,11 +210,9 @@ int runCD(char* arg) {
 				}
 			}
 			else { //relative path, cd .testdir
-				//print
 				strcpy(temp, varTable.word[0]);
 				strcat(varTable.word[0], "/");
 				strcat(varTable.word[0], token);
-				printf("relative path . path: %s\n", varTable.word[0]);
 				if(chdir(varTable.word[0]) == 0){
 					return 1;
 				}
@@ -212,7 +230,6 @@ int runCD(char* arg) {
 			return 1;
 		}
 		else {
-			printf("why1");
 			getcwd(cwd, sizeof(cwd));
 			strcpy(varTable.word[0], cwd);
 			printf("Directory not found\n");
@@ -220,10 +237,8 @@ int runCD(char* arg) {
 		}
 	}
 	else { // arg is absolute path
-		//printf("why2");
 		char* temp[100];
 		if (strcmp(arg, varTable.word[1]) == 0){
-			//printf("why3");
 			chdir(varTable.word[1]);
 			strcpy(varTable.word[0], varTable.word[1]);
 			return 1;
@@ -245,7 +260,6 @@ int runCD(char* arg) {
 bool checkAlias(char* name){
     for (int i = 0; i < aliasIndex; i++) {
         if((strcmp(aliasTable.name[i], name)) == 0) {
-            //printf("Error not in table ");
 			return true;
         } 
     }
@@ -257,6 +271,10 @@ int runSetAlias(char *name, char *word) {
 	// alias a b
 	// alias b c
 	// alias c a
+	if (loopCheck(name, word)){
+		printf("Error4, expansion of \"%s\" would create a loop.\n", name);
+		return 1;
+	}
 	for (int i = 0; i <= aliasIndex; i++) {
 		if(strcmp(name, word) == 0){ 
 			printf("Error1, expansion of \"%s\" would create a loop.\n", name);
@@ -277,34 +295,6 @@ int runSetAlias(char *name, char *word) {
 			//char* = passed in name to be checked against the others
 			//continually check what the word of the previous name is equal to
 		}
-		// else if (!(strcmp(aliasTable.name[i], name) == 0) && !(strcmp(aliasTable.word[i], word) == 0)){
-		// 	printf("here");
-		// 	char* compn[100];
-		// 	char* compw[100];
-		// 	strcpy(compw, word);
-		// 	int temp;
-
-		// 	for (int j = 0; j < aliasIndex; j++){ //name
-		// 	if (strcmp(compn, compw) == 0){
-		// 		printf("Error4, expansion of \"%s\" would create a loop.\n", name);
-		// 		return 1;
-		// 	}
-		// 	else if (strcmp(aliasTable.word[j], compn) == 0)){
-		// 		temp = k;//we know that k at the name index is equal to the current 
-		// 		compn = aliasTable.name[k];
-		// 		j = 0;
-		// 	}
-		// 			for(int k = 0; j < aliasIndex; k++){ //word
-		// 				if(strcmp(aliasTable.name[k], compw) == 0){
-		// 					temp = k;//we know that k at the name index is equal to the current 
-		// 					compn = aliasTable.name[k];
-		// 					j = 0;
-		// 					break; 
-							
-		// 				}
-		// 		}
-		// 	}
-		// }
 		else if(strcmp(aliasTable.name[i], name) == 0) {
 			strcpy(aliasTable.word[i], word);
 			return 1;
@@ -321,8 +311,7 @@ for (int i = 0; i < aliasIndex; i++){
 		printf("%s = ", aliasTable.name[i]);
 		printf("%s\n",aliasTable.word[i]);
 	}
-	printf("alias index: %d\n", aliasIndex);
-	//return 1;
+	return 1;
 }
 //name=word
 //name is the alias
@@ -431,11 +420,9 @@ bool ifCmdPath(char** argPass, int currCommand){
 	char* temp[64];
 	strcpy(temp, pTable.paths[i]);
 	strcat(temp, "/");
-	//printf("Temp path: %s\n", temp);
     path[0] = temp;
     path[1] = cmdTable.cmds[currCommand];
     char* npath = concatStr(path[0], path[1]);
-	//printf("npath path: %s\n", npath);
     int fd = access(npath, F_OK);
     if(fd == -1 && i+1 == pathIndex){ //iterated through all, no directory exists
 		printf("Error Number: %d\n", errno);
@@ -446,15 +433,12 @@ bool ifCmdPath(char** argPass, int currCommand){
 		continue;
     }
     else { //command does exist
-        //printf("%s\n", npath);
-		//fpath = npath;
 		argPass[0] = npath;
 		for (int i = 1; i <= cmdTable.argument[currCommand].argCount; i++){
 		argPass[i] = cmdTable.argument[currCommand].args[i-1];
 		}
 		argPass[cmdTable.argument[currCommand].argCount+1] = NULL;
 		memset(temp, 0, sizeof(temp));
-		//printf("true");
 		return true;
     }	
 }
@@ -501,9 +485,7 @@ void RunWildCardExpan(char* arg){
   	if (d) {
     	while ((dir = readdir(d)) != NULL) {
       		if(fnmatch(arg, dir->d_name, 0) == 0){
-				//printf("%s\n", dir->d_name);
 				strcpy(cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount], dir->d_name);
-				//printf("args: %s\n", cmdTable.argument[cmdIndex].args[cmdTable.argument[cmdIndex].argCount]);
 				cmdTable.argument[cmdIndex].argCount++;
 				count++;
 			  } 
@@ -515,11 +497,8 @@ void RunWildCardExpan(char* arg){
 		strcpy(cmdTable.cmds[cmdIndex], "");
 	}
 			  
-//return;
 }
 
-// i have my meeting now ill be back at 6
-// it worked btw
 void RunPipes(){
 	pid_t pid;
     int fd[cmdIndex][2];
@@ -536,12 +515,10 @@ void RunPipes(){
 					if (j == i){
 						dup2(fd[j][WRITE_END], STDOUT_FILENO);
 						close(fd[j][READ_END]);
-						//perror("Pipe results");
 					}
 					else if(j == i-1){ //open read side
 						dup2(fd[j][READ_END], STDIN_FILENO);
 						close(fd[j][WRITE_END]);
-						//perror("Pipe results");
 					}
 					else{
 						close(fd[j][READ_END]);
@@ -558,7 +535,6 @@ void RunPipes(){
 			}  
 		} 
     }
-    //printf("finished forking\n");
     for(int i = 0; i < cmdIndex; i++){
         close(fd[i][READ_END]);
         close(fd[i][WRITE_END]);

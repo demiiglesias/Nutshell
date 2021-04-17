@@ -33,7 +33,6 @@ bool ifAlias(char* name){
 bool varExist(char* var){
     for(int i = 0; i < varIndex; i++){
         if (strcmp(varTable.var[i],var) == 0){
-            //printf("enter 3");
             return true;
         }
     }
@@ -56,7 +55,7 @@ void envExpan(char* input, char* final){
     char  envVars[128][100];
 	char* token;
 	strcpy(string, input);
-	    printf("Input from rule: %s\n", string);
+	    //printf("Input from rule: %s\n", string);
     if(strstr(string, s2)){
         token = malloc(sizeof(string));
         token = strtok(string, "${}");
@@ -65,32 +64,32 @@ void envExpan(char* input, char* final){
             while (token != NULL) //splits up the env vars
             {
             strcpy(envVars[envNum], token);
-            printf("env Vars: %s\n",envVars[envNum]);
+            //printf("env Vars: %s\n",envVars[envNum]);
             envNum++;
             token = strtok(NULL, "${}");
             }
         printf("envNum: %d\n", envNum);
         for (int i = 0; i < envNum; i++) {
             if (varExist(envVars[i])){
-                printf("env Vars subbed: %s, ",envVars[i]);
-                printf("string length: %d, ",strlen(envVars[i]));
+                //printf("env Vars subbed: %s, ",envVars[i]);
+                //printf("string length: %d, ",strlen(envVars[i]));
                 strcpy(envVars[i], varSub(envVars[i]));
-                printf("env Vars subbed with: %s\n",envVars[i]);
+                //printf("env Vars subbed with: %s\n",envVars[i]);
             }
         }
         char temp[100];
         memset(temp, 0, sizeof(temp));
-        printf("Temp string: %s\n", temp);
+        //printf("Temp string: %s\n", temp);
         
         for (int i = 0; i < envNum; i++) {
         strcpy(temp, strcat(temp, envVars[i])) ;
         }
-        printf("Returned string: %s\n", temp);
+        //printf("Returned string: %s\n", temp);
         strcpy(final, temp);
         return;
         }
         else{
-        printf("Returned string: %s\n", input);
+        //printf("Returned string: %s\n", input);
         strcpy(final, input);
         return;
     } 
@@ -116,7 +115,7 @@ ANYCHAR         [)(*&%$#@}{!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@}{!`;,\.a-zA-Z0-9'/*
                                  yylval.string = strdup(final); 
                                  return STRING;}
 <string_condition>[\"]          {BEGIN(INITIAL);}
-<envexpan>{CHAR}+               {if(varExist(yytext) && wordcount == 0) {
+<envexpan>{CHAR}+               {if(varExist(yytext)) {
                                     printf("Current value from stream: %s\n", yylval.string);
                                     char *yycopy = strdup(varSub(yytext));
                                     for (int i = strlen(varSub(yytext)) - 1; i >= 0; --i)
@@ -133,7 +132,7 @@ ANYCHAR         [)(*&%$#@}{!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@}{!`;,\.a-zA-Z0-9'/*
 <envexpan>[\}]                 {BEGIN(INITIAL);}
 
                        
-[ ]		            { wordcount = 0;}
+[ ]		            { }
 bye                 { wordcount = 1; return BYE;}
 cd		            { wordcount = 1; return CD;}
 alias		        { wordcount = 1; return ALIAS;}
@@ -142,9 +141,8 @@ printenv            { wordcount = 1; return PRINTENV;}
 unsetenv            { wordcount = 1; return UNSETENV;}
 unalias             { wordcount = 1; return UNALIAS;}    
 "\n"		        { wordcount = 0; return END;}
-"\^\["              { printf("we did it"); return END;}
 [\"]                { BEGIN(string_condition);}
-"$"\{               { BEGIN(envexpan);}
+"$"\{               { wordcount = 1; BEGIN(envexpan);}
 
 {CHAR}+             {if(ifAlias(yytext) && wordcount == 0) {
                            char *yycopy = strdup(subAliases(yytext));
