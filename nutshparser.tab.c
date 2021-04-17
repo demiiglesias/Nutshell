@@ -1712,60 +1712,100 @@ int RunPathSplitter(){
 // one function for defaults, one with one argument, one with two arguments
 int runCD(char* arg) {
 	if (arg[0] != '/') { // arg is relative path
-		// char* tkn = strtok(arg,"/");
-		strcat(varTable.word[0], "/");
-		strcat(varTable.word[0], arg);
 		char* token = &arg[1];
-		printf("token: %s\n", token);
+
 		if(strcmp(arg,"~") == 0){//bring home
+			//printf("reached");
 			chdir(varTable.word[1]);
 			strcpy(varTable.word[0], varTable.word[1]);
-		}
-		else if(strcmp(&arg[0],"~") == 0){
-			printf("reached");
-			char* temp;
-			if (strcmp(token, "/") == 0){ //cd ~/testdir
-				token = strtok("~", arg);
-				printf("token: %s\n", token);
-				strcpy(temp, strcat(varTable.word[1], arg));
-				printf("token: %s\n", temp);
-				if(!chdir(temp)){
-					printf("Directory not found\n");
-					return 1;
-				}
-				strcpy(varTable.word[0], temp);
-			}
-			else { //relative path
-				token = strtok("~", arg);
-
-				strcpy(temp, strcat(varTable.word[1], arg));
-
-			}
+			return 1;
 		}
 		else if(strcmp(arg,".") == 0){ 
 			chdir(varTable.word[0]);
 			getcwd(cwd, sizeof(cwd));
 			strcpy(varTable.word[0], cwd);
 			return 1;
-		} 
-		else if(strcmp(&arg[0],".") == 0){
-			arg[0] = arg[0] + 1;
-			chdir("HOME/..");
-			if(chdir(arg[0]!=0)){
-				arg[0]= getenv("HOME");
-				chdir(varTable.word[1]);
-				return 1;
-			}
 		}
 		else if(strcmp(arg,"..") == 0){
 			chdir("..");
 			strcpy(varTable.word[0], getcwd(cwd, sizeof(cwd)));
 			return 1;
+		} 
+		else if(arg[0] == '~'){
+			printf("reached");
+			char* temp[100];
+			if (token[0] == '/'){ //cd ~/testdir
+				strcpy(temp, varTable.word[0]);
+				//token = strcat("/", token);
+				strcat(varTable.word[0], token);
+				printf("relative path ~ path: %s\n", varTable.word[0]);
+				if(chdir(varTable.word[0]) == 0){
+					return 1;
+				}
+				else {
+					strcpy(varTable.word[0], temp);
+					printf("Directory not found\n");
+                    return 1;
+				}
+			}
+			else { //relative path, cd ~testdir
+				//print
+				strcpy(temp, varTable.word[0]);
+				strcat(varTable.word[0], "/");
+				strcat(varTable.word[0], token);
+				printf("relative path ~ path: %s\n", varTable.word[0]);
+				if(chdir(varTable.word[0]) == 0){
+					return 1;
+				}
+				else {
+					strcpy(varTable.word[0], temp);
+					printf("Directory not found\n");
+                    return 1;
+				}
+
+			}
 		}
-		else if(chdir(varTable.word[0]) == 0) {
+		else if(arg[0] == '.'){
+			printf("reached");
+			char* temp[100];
+			if (token[0] == '/'){ //cd ./testdir
+				strcpy(temp, varTable.word[0]);
+				//token = strcat("/", token);
+				strcat(varTable.word[0], token);
+				printf("relative path . path: %s\n", varTable.word[0]);
+				if(chdir(varTable.word[0]) == 0){
+					return 1;
+				}
+				else {
+					strcpy(varTable.word[0], temp);
+					printf("Directory not found\n");
+                    return 1;
+				}
+			}
+			else { //relative path, cd ~testdir
+				//print
+				strcpy(temp, varTable.word[0]);
+				strcat(varTable.word[0], "/");
+				strcat(varTable.word[0], token);
+				printf("relative path . path: %s\n", varTable.word[0]);
+				if(chdir(varTable.word[0]) == 0){
+					return 1;
+				}
+				else {
+					strcpy(varTable.word[0], temp);
+					printf("Directory not found\n");
+                    return 1;
+				}
+
+			}
+		}
+		strcat(varTable.word[0], "/");
+		strcat(varTable.word[0], arg);
+		if(chdir(varTable.word[0]) == 0) {
 			return 1;
 		}
 		else {
+			printf("why1");
 			getcwd(cwd, sizeof(cwd));
 			strcpy(varTable.word[0], cwd);
 			printf("Directory not found\n");
@@ -1773,7 +1813,14 @@ int runCD(char* arg) {
 		}
 	}
 	else { // arg is absolute path
+		//printf("why2");
 		char* temp[100];
+		if (strcmp(arg, varTable.word[1]) == 0){
+			//printf("why3");
+			chdir(varTable.word[1]);
+			strcpy(varTable.word[0], varTable.word[1]);
+			return 1;
+		} 
 		strcpy(temp, varTable.word[0]);
 		strcat(varTable.word[0], arg);
 		if(chdir(varTable.word[0]) == 0){
